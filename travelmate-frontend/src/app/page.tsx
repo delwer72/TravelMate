@@ -1,3 +1,4 @@
+
 import { FiShield, FiGlobe, FiArrowRight, FiCompass } from "react-icons/fi";
 import Link from "next/link";
 import DashboardPreview from "@/components/home/DashboardPreview";
