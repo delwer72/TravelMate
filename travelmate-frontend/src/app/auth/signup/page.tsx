@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, FormEvent, ChangeEvent } from "react";
+import { Suspense, useState, FormEvent, ChangeEvent } from "react";
 import { Card, Button, Link, TextField, Label, InputGroup, Input } from "@heroui/react";
 import { Radio, RadioGroup } from "@heroui/react";
 import { Eye, EyeSlash, Person, At, ShieldKeyhole } from "@gravity-ui/icons";
@@ -11,8 +11,7 @@ import { FcGoogle } from "react-icons/fc";
 
 type UserRole = "guest" | "user";
 
-export default function SignupPage() {
-  // Form fields
+function SignupForm() {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -22,7 +21,6 @@ export default function SignupPage() {
   const searchParams = useSearchParams();
   const redirectTo: string = searchParams.get("redirect") || "/";
 
-  // UI States
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -44,7 +42,11 @@ export default function SignupPage() {
         email,
         password,
         name,
-        plan, // Removed 'role' to prevent BetterAuth permission errors
+        fetchOptions: {
+          body: {
+            plan,
+          },
+        },
       });
 
       if (authError) {
@@ -64,30 +66,27 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignIn = async () => {
-     const data = await authClient.signIn.social({
-    provider: "google",
-  });
-  console.log(data);
+    const data = await authClient.signIn.social({
+      provider: "google",
+    });
+    console.log(data);
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
 
-        {/* Header Container */}
         <div className="flex flex-col items-center justify-center gap-1 pb-6 border-b border-zinc-100 dark:border-zinc-800 mb-6 text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-blue-950 dark:text-blue-50">Create an account</h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">Fill in the fields below to get started</p>
         </div>
 
-        {/* Form Body */}
         <form onSubmit={handleSignup} className="flex flex-col gap-5">
 
-          {/* Name Field */}
           <TextField isRequired name="name" className="flex flex-col gap-1.5">
             <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</Label>
             <InputGroup className="flex items-center gap-2 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 bg-zinc-50 dark:bg-zinc-900 focus-within:border-primary transition-colors">
-              <Person className="text-zinc-400 pointer-events-none" size={16} />
+              <Person className="text-zinc-400 pointer-events-none" width={16} height={16} />
               <Input
                 type="text"
                 placeholder="Enter your full name"
@@ -98,11 +97,10 @@ export default function SignupPage() {
             </InputGroup>
           </TextField>
 
-          {/* Email Field */}
           <TextField isRequired name="email" type="email" className="flex flex-col gap-1.5">
             <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Email Address</Label>
             <InputGroup className="flex items-center gap-2 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 bg-zinc-50 dark:bg-zinc-900 focus-within:border-primary transition-colors">
-              <At className="text-zinc-400 pointer-events-none" size={16} />
+              <At className="text-zinc-400 pointer-events-none" width={16} height={16} />
               <Input
                 placeholder="you@example.com"
                 value={email}
@@ -112,11 +110,10 @@ export default function SignupPage() {
             </InputGroup>
           </TextField>
 
-          {/* Password Field */}
           <TextField isRequired name="password" className="flex flex-col gap-1.5">
             <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</Label>
             <InputGroup className="flex items-center gap-2 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 bg-zinc-50 dark:bg-zinc-900 focus-within:border-primary transition-colors">
-              <ShieldKeyhole className="text-zinc-400 pointer-events-none" size={16} />
+              <ShieldKeyhole className="text-zinc-400 pointer-events-none" width={16} height={16} />
               <Input
                 type={isVisible ? "text" : "password"}
                 placeholder="Choose a password"
@@ -130,12 +127,11 @@ export default function SignupPage() {
                 onClick={toggleVisibility}
                 aria-label="toggle password visibility"
               >
-                {isVisible ? <EyeSlash size={18} /> : <Eye size={18} />}
+                {isVisible ? <EyeSlash width={18} height={18} /> : <Eye width={18} height={18} />}
               </button>
             </InputGroup>
           </TextField>
 
-          {/* Role Selection */}
           <div className="flex flex-col gap-2">
             <Label className="text-sm font-medium text-zinc-300">User plan</Label>
             <div className="grid grid-cols-2 gap-1 p-1 bg-zinc-900/90 border border-zinc-800 rounded-xl">
@@ -162,7 +158,6 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* Dynamic Status Badges */}
           {error && (
             <div className="p-3.5 text-xs font-medium rounded-xl bg-red-100/60 dark:bg-red-950/50 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900">
               <span className="font-semibold">Error:</span> {error}
@@ -175,18 +170,14 @@ export default function SignupPage() {
             </div>
           )}
 
-          {/* Action Button */}
           <Button
             type="submit"
-            color="primary"
-            className="w-full font-semibold rounded-xl text-sm h-12"
-            isLoading={isLoading}
+            className="w-full font-semibold rounded-xl text-sm h-12 bg-blue-600 hover:bg-blue-700 text-white"
             isDisabled={isLoading}
           >
-            Sign Up
+            {isLoading ? "Signing up..." : "Sign Up"}
           </Button>
 
-          {/* Navigation Option */}
           <div className="text-center pt-4 border-t border-zinc-100 dark:border-zinc-800 mt-2 text-sm text-zinc-600 dark:text-zinc-400">
             Already have an account?{" "}
             <Link href={`/auth/signin?redirect=${redirectTo}`} className="font-medium cursor-pointer text-sm text-blue-600 dark:text-blue-400">
@@ -197,11 +188,19 @@ export default function SignupPage() {
         </form>
         <p className="text-center mt-4">or</p>
 
-        <Button onClick={handleGoogleSignIn} className="w-full text-white hover:bg-accent" variant="outline"  >
+        <Button onClick={handleGoogleSignIn} className="w-full text-white hover:bg-accent" variant="outline">
           <FcGoogle />
           Sign in with Google
         </Button>
       </Card>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <SignupForm />
+    </Suspense>
   );
 }

@@ -1,16 +1,25 @@
+
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { signOut, useSession } from "@/lib/auth-client";
 import { Button } from "@heroui/react";
 
+type UserRole = "guest" | "user" | "admin";
+
+type UserWithRole = {
+  name?: string | null;
+  email?: string | null;
+  role?: UserRole;
+};
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session, isPending } = useSession();
-  // console.log("session data in navbar", session, "Is pending", isPending);
-  const user = session?.user;
+
+  const { data: session } = useSession();
+
+  const user = session?.user as UserWithRole | undefined;
 
   const handleSignOut = async () => {
     await signOut();
@@ -19,31 +28,29 @@ export default function Navbar() {
   const navLinks = [
     {
       label: "Home",
-      href: "/home"
+      href: "/home",
     },
     {
       label: "About Us",
-      href: "/about"
+      href: "/about",
     },
     {
       label: "Packages",
-      href: "/Packages"
+      href: "/Packages",
     },
   ];
 
-  const dashboardLinks = {
-    guest: '/dashboard/guest',
-    user: '/dashboard/user',
-    admin: '/dashboard/admin'
-  }
+  const dashboardLinks: Record<UserRole, string> = {
+    guest: "/dashboard/guest",
+    user: "/dashboard/user",
+    admin: "/dashboard/admin",
+  };
 
   if (user?.email) {
-    navLinks.push(
-      {
-        label: 'Dashboard',
-        href: dashboardLinks[user?.role || 'guest']
-      }
-    )
+    navLinks.push({
+      label: "Dashboard",
+      href: dashboardLinks[user.role ?? "guest"],
+    });
   }
 
   return (
@@ -52,7 +59,7 @@ export default function Navbar() {
 
         {/* LEFT: LOGO */}
         <Link href="/" className="flex items-center">
-          <div className="lg:col-span-2 flex flex-col gap-3">
+          <div className="flex flex-col gap-3">
             <h2 className="text-2xl font-bold tracking-tight text-white">
               Travel
               <span className="font-extrabold text-indigo-400">Mate</span>
@@ -62,8 +69,9 @@ export default function Navbar() {
 
         {/* MOBILE MENU BUTTON */}
         <button
-          className="md:hidden text-white"
+          className="text-white md:hidden"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle menu"
         >
           <svg
             className="h-6 w-6"
@@ -89,8 +97,8 @@ export default function Navbar() {
           </svg>
         </button>
 
-        {/* RIGHT MENU (DESKTOP) */}
-        <div className="hidden md:flex items-center justify-end gap-6 ml-auto">
+        {/* RIGHT MENU - DESKTOP */}
+        <div className="ml-auto hidden items-center justify-end gap-6 md:flex">
 
           {/* NAV LINKS */}
           <ul className="flex items-center gap-8">
@@ -98,7 +106,7 @@ export default function Navbar() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="text-sm text-zinc-300 hover:text-white transition"
+                  className="text-sm text-zinc-300 transition hover:text-white"
                 >
                   {item.label}
                 </Link>
@@ -106,13 +114,16 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* VERTICAL DIVIDER */}
+          {/* DIVIDER */}
           <div className="h-6 w-px bg-zinc-700" />
 
-          {/* SIGN IN */}
+          {/* AUTH */}
           {user ? (
             <>
-              Hi, {user.name || user.email}
+              <span className="text-sm text-zinc-300">
+                Hi, {user.name || user.email}
+              </span>
+
               <Button variant="danger" onClick={handleSignOut}>
                 Sign Out
               </Button>
@@ -126,7 +137,6 @@ export default function Navbar() {
                 Sign In
               </Link>
 
-              {/* GET STARTED */}
               <Link
                 href="/auth/signup"
                 className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 px-5 py-2 text-sm font-medium text-white hover:opacity-90"
@@ -135,14 +145,14 @@ export default function Navbar() {
               </Link>
             </>
           )}
-
         </div>
       </div>
 
       {/* MOBILE MENU */}
       {isOpen && (
-        <div className="md:hidden border-t border-zinc-800 px-4 py-3">
+        <div className="border-t border-zinc-800 px-4 py-3 md:hidden">
           <ul className="flex flex-col gap-3">
+
             {navLinks.map((item) => (
               <li key={item.href}>
                 <Link
@@ -157,40 +167,45 @@ export default function Navbar() {
 
             <div className="my-2 h-px bg-zinc-800" />
 
-            {
-              user ?
-                (
-                  <>
-                    Hi, {user.name || user.email}
-                    <Button variant="danger" onClick={handleSignOut}>
-                      Sign Out
-                    </Button>
-                  </>
-                ) :
-                (
-                  <>
-                    <li>
-                      <Link
-                        href="/auth/signin"
-                        onClick={() => setIsOpen(false)}
-                        className="block text-violet-400"
-                      >
-                        Sign In
-                      </Link>
-                    </li>
+            {user ? (
+              <>
+                <li className="text-sm text-zinc-300">
+                  Hi, {user.name || user.email}
+                </li>
 
-                    <li>
-                      <Link
-                        href="/auth/signup"
-                        onClick={() => setIsOpen(false)}
-                        className="mt-2 block rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 px-4 py-2 text-center text-white"
-                      >
-                        Get Started
-                      </Link>
-                    </li>
-                  </>
-                )
-            }
+                <li>
+                  <Button
+                    variant="danger"
+                    onClick={handleSignOut}
+                    className="w-full"
+                  >
+                    Sign Out
+                  </Button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link
+                    href="/auth/signin"
+                    onClick={() => setIsOpen(false)}
+                    className="block text-violet-400"
+                  >
+                    Sign In
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    href="/auth/signup"
+                    onClick={() => setIsOpen(false)}
+                    className="mt-2 block rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 px-4 py-2 text-center text-white"
+                  >
+                    Get Started
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       )}
