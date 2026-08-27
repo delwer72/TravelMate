@@ -1,36 +1,173 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ✈️ TravelMate
 
-## Getting Started
+TravelMate is a modern travel management and trip planning web application built with **Next.js**, **React**, **Tailwind CSS**, and **Better Auth**.
 
-First, run the development server:
+The platform helps travelers explore destinations, view travel packages, create accounts, and manage their travel experience through personalized dashboards.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🌐 Live Demo
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+🔗 **Live Website:** Coming Soon
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🔗 **GitHub Repository:** https://github.com/delwer72/TravelMate
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 📸 Project Overview
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+TravelMate provides a modern and responsive travel experience where users can:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Explore travel destinations
+- Browse travel packages
+- Create an account
+- Sign in securely
+- Sign in with Google
+- Select a user plan
+- Access personalized dashboards
+- Manage their travel activities
+- Navigate easily across desktop and mobile devices
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚀 Features
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 👤 Authentication
+
+- User registration
+- User login
+- Logout functionality
+- Google authentication
+- Better Auth integration
+- Session management
+- Protected user experience
+- Redirect support after authentication
+
+### 🌍 Destinations
+
+- Browse travel destinations
+- Destination information
+- Attractive destination cards
+- Responsive destination layout
+- Travel-focused UI
+
+### 🎒 Travel Packages
+
+- Browse available travel packages
+- Package details
+- Travel package navigation
+- User-friendly package interface
+
+### 📊 Dashboard
+
+TravelMate supports different dashboard experiences:
+
+- Guest Dashboard
+- User Dashboard
+- Admin Dashboard
+
+The dashboard system is designed to provide different functionality based on the user's role.
+
+### 📱 Responsive Design
+
+The application is responsive and optimized for:
+
+- Desktop
+- Laptop
+- Tablet
+- Mobile
+
+### 🎨 Modern UI
+
+- Tailwind CSS
+- HeroUI
+- Responsive navigation
+- Modern cards
+- Gradient buttons
+- Dark-mode friendly design
+- Clean authentication pages
+- Mobile navigation menu
+
+---
+
+## 🛠️ Technologies Used
+
+### Frontend
+
+- **Next.js 16**
+- **React 19**
+- **JavaScript / JSX**
+- **Tailwind CSS**
+- **HeroUI**
+- **React Icons**
+- **Gravity UI Icons**
+
+### Authentication
+
+- **Better Auth**
+- Google OAuth
+
+### State Management
+
+- Redux Toolkit
+- React Redux
+
+### API / HTTP
+
+- Axios
+- REST API
+
+### Development Tools
+
+- Git
+- GitHub
+- VS Code
+- ESLint
+- npm
+
+### Deployment
+
+- Vercel
+
+---
+
+## 📁 Project Structure
+
+```text
+TravelMate/
+│
+├── travelmate-frontend/
+│   │
+│   ├── public/
+│   │
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── about/
+│   │   │   ├── auth/
+│   │   │   │   ├── signin/
+│   │   │   │   └── signup/
+│   │   │   │
+│   │   │   ├── dashboard/
+│   │   │   │   ├── admin/
+│   │   │   │   ├── guest/
+│   │   │   │   └── user/
+│   │   │   │
+│   │   │   ├── destinations/
+│   │   │   ├── Packages/
+│   │   │   └── home/
+│   │   │
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   └── ...
+│   │   │
+│   │   ├── lib/
+│   │   │   └── auth-client
+│   │   │
+│   │   └── ...
+│   │
+│   ├── package.json
+│   ├── next.config.ts
+│   ├── postcss.config.mjs
+│   └── ...
+│
+└── README.md
