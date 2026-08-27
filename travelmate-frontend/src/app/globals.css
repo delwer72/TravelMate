@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@heroui/styles"; 
 
 @theme {
   /* ডার্ক থিম এবং অরেঞ্জ প্রাইমারি কালার */

@@ -2,77 +2,198 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FiMenu, FiX } from "react-icons/fi";
-// আইকনের জন্য একটি টেম্পোরারি লোগো আইকন
-import { LuMountain } from "react-icons/lu";
+import Image from "next/image";
+import { signOut, useSession } from "@/lib/auth-client";
+import { Button } from "@heroui/react";
 
-const Navbar = () => {
+export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const { data: session, isPending } = useSession();
+  // console.log("session data in navbar", session, "Is pending", isPending);
+  const user = session?.user;
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const navLinks = [
+    {
+      label: "Home",
+      href: "/home"
+    },
+    {
+      label: "About Us",
+      href: "/about"
+    },
+    {
+      label: "Packages",
+      href: "/Packages"
+    },
+  ];
+
+  const dashboardLinks = {
+    guest: '/dashboard/guest',
+    user: '/dashboard/user',
+    admin: '/dashboard/admin'
+  }
+
+  if (user?.email) {
+    navLinks.push(
+      {
+        label: 'Dashboard',
+        href: dashboardLinks[user?.role || 'guest']
+      }
+    )
+  }
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          
-          {/* Logo Section */}
-          <div className="flex items-center gap-2">
-            <div className="p-2 border border-primary rounded-xl">
-              <LuMountain className="text-primary text-xl" />
-            </div>
-            <Link href="/" className="text-2xl font-bold text-foreground">
-              TravelMate
-            </Link>
-          </div>
+    <nav className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
 
-          {/* Center Navigation Links (Pill shape background) */}
-          <div className="hidden md:flex items-center bg-surface border border-border rounded-full px-6 py-2 space-x-6">
-            <Link href="/destinations" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Explore
-            </Link>
-            <Link href="/trips" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">
-              Plan Trip
-            </Link>
-            <Link href="/reviews" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">
-              Reviews
-            </Link>
+        {/* LEFT: LOGO */}
+        <Link href="/" className="flex items-center">
+          <div className="lg:col-span-2 flex flex-col gap-3">
+            <h2 className="text-2xl font-bold tracking-tight text-white">
+              Travel
+              <span className="font-extrabold text-indigo-400">Mate</span>
+            </h2>
           </div>
+        </Link>
 
-          {/* Right Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link href="/login" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Sign In
-            </Link>
-            <Link 
-              href="/register" 
-              className="px-6 py-2.5 text-sm font-semibold text-background bg-foreground rounded-full hover:bg-gray-200 transition-colors"
-            >
-              Get Started
-            </Link>
-          </div>
+        {/* MOBILE MENU BUTTON */}
+        <button
+          className="md:hidden text-white"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {isOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            )}
+          </svg>
+        </button>
 
-          {/* Mobile Menu Toggle */}
-          <div className="md:hidden flex items-center">
-            <button onClick={toggleMenu} className="text-foreground focus:outline-none">
-              {isOpen ? <FiX size={28} /> : <FiMenu size={28} />}
-            </button>
-          </div>
+        {/* RIGHT MENU (DESKTOP) */}
+        <div className="hidden md:flex items-center justify-end gap-6 ml-auto">
+
+          {/* NAV LINKS */}
+          <ul className="flex items-center gap-8">
+            {navLinks.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="text-sm text-zinc-300 hover:text-white transition"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* VERTICAL DIVIDER */}
+          <div className="h-6 w-px bg-zinc-700" />
+
+          {/* SIGN IN */}
+          {user ? (
+            <>
+              Hi, {user.name || user.email}
+              <Button variant="danger" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/auth/signin"
+                className="text-sm text-violet-400 hover:text-violet-300"
+              >
+                Sign In
+              </Link>
+
+              {/* GET STARTED */}
+              <Link
+                href="/auth/signup"
+                className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 px-5 py-2 text-sm font-medium text-white hover:opacity-90"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
+
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* MOBILE MENU */}
       {isOpen && (
-        <div className="md:hidden bg-surface border-t border-border px-4 py-4 space-y-4">
-          <Link href="/destinations" className="block text-foreground font-medium" onClick={toggleMenu}>Explore</Link>
-          <Link href="/trips" className="block text-foreground/70 font-medium" onClick={toggleMenu}>Plan Trip</Link>
-          <Link href="/reviews" className="block text-foreground/70 font-medium" onClick={toggleMenu}>Reviews</Link>
-          <hr className="border-border" />
-          <Link href="/login" className="block text-foreground font-medium" onClick={toggleMenu}>Sign In</Link>
-          <Link href="/register" className="block text-background bg-foreground px-4 py-2 rounded-full text-center font-bold" onClick={toggleMenu}>Get Started</Link>
+        <div className="md:hidden border-t border-zinc-800 px-4 py-3">
+          <ul className="flex flex-col gap-3">
+            {navLinks.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className="block text-zinc-300 hover:text-white"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+
+            <div className="my-2 h-px bg-zinc-800" />
+
+            {
+              user ?
+                (
+                  <>
+                    Hi, {user.name || user.email}
+                    <Button variant="danger" onClick={handleSignOut}>
+                      Sign Out
+                    </Button>
+                  </>
+                ) :
+                (
+                  <>
+                    <li>
+                      <Link
+                        href="/auth/signin"
+                        onClick={() => setIsOpen(false)}
+                        className="block text-violet-400"
+                      >
+                        Sign In
+                      </Link>
+                    </li>
+
+                    <li>
+                      <Link
+                        href="/auth/signup"
+                        onClick={() => setIsOpen(false)}
+                        className="mt-2 block rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 px-4 py-2 text-center text-white"
+                      >
+                        Get Started
+                      </Link>
+                    </li>
+                  </>
+                )
+            }
+          </ul>
         </div>
       )}
     </nav>
   );
-};
-
-export default Navbar;
+}
