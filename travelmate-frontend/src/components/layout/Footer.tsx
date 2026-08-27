@@ -71,7 +71,7 @@ export default function Footer(): React.JSX.Element {
           {/* Brand Info */}
           <div className="lg:col-span-2 flex flex-col gap-3">
             <h2 className="text-2xl font-bold tracking-tight text-white">
-              Travel <br />
+              Travel
               <span className="font-extrabold text-indigo-400">Mate</span>
             </h2>
             <p className="max-w-xs text-xs leading-relaxed text-slate-400">

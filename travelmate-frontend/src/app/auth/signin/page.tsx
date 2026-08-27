@@ -3,8 +3,9 @@
 import { useState, FormEvent, ChangeEvent } from "react";
 import { Card, Button, Link, TextField, Label, InputGroup, Input } from "@heroui/react";
 import { Eye, EyeSlash, At, ShieldKeyhole } from "@gravity-ui/icons";
-import { signIn } from "@/lib/auth-client";
+import { authClient, signIn } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { FcGoogle } from "react-icons/fc";
 
 export default function SigninPage() {
     // Form fields
@@ -49,6 +50,13 @@ export default function SigninPage() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleGoogleSignIn = async () => {
+        const data = await authClient.signIn.social({
+            provider: "google",
+        });
+        console.log(data);
     };
 
     return (
@@ -134,6 +142,13 @@ export default function SigninPage() {
                     </div>
 
                 </form>
+
+                <p className="text-center mt-4">or</p>
+
+                <Button onClick={handleGoogleSignIn} className="w-full text-white hover:bg-accent" variant="outline"  >
+                    <FcGoogle />
+                    Sign in with Google
+                </Button>
             </Card>
         </div>
     );

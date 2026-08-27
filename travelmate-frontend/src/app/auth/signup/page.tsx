@@ -1,11 +1,13 @@
+
 "use client";
 
 import { useState, FormEvent, ChangeEvent } from "react";
 import { Card, Button, Link, TextField, Label, InputGroup, Input } from "@heroui/react";
 import { Radio, RadioGroup } from "@heroui/react";
 import { Eye, EyeSlash, Person, At, ShieldKeyhole } from "@gravity-ui/icons";
-import { signUp } from "@/lib/auth-client";
+import { authClient, signUp } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { FcGoogle } from "react-icons/fc";
 
 type UserRole = "guest" | "user";
 
@@ -42,8 +44,7 @@ export default function SignupPage() {
         email,
         password,
         name,
-        role,
-        plan,
+        plan, // Removed 'role' to prevent BetterAuth permission errors
       });
 
       if (authError) {
@@ -62,8 +63,15 @@ export default function SignupPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+     const data = await authClient.signIn.social({
+    provider: "google",
+  });
+  console.log(data);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center  px-4">
+    <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
 
         {/* Header Container */}
@@ -128,55 +136,30 @@ export default function SignupPage() {
           </TextField>
 
           {/* Role Selection */}
-          {/* <div className="flex flex-col gap-4">
-            <Label>Subscription plan</Label>
-            <RadioGroup
-              defaultValue="guest"
-              name="role"
-              onChange={(val: string | ChangeEvent<HTMLInputElement>) => {
-                const roleValue = typeof val === "string" ? val : val.target.value;
-                setRole(roleValue as UserRole);
-              }}
-              orientation="horizontal"
-            >
-              <Radio value="guest">
-                <Radio.Control>
-                  <Radio.Indicator />
-                </Radio.Control>
-                <Radio.Content>
-                  <Label>Guest</Label>
-                </Radio.Content>
-              </Radio>
-              <Radio value="user">
-                <Radio.Control>
-                  <Radio.Indicator />
-                </Radio.Control>
-                <Radio.Content>
-                  <Label>User</Label>
-                </Radio.Content>
-              </Radio>
-            </RadioGroup>
-          </div> */}
-          <div className="flex flex-col gap-4">
-            <Label>User plan</Label>
-            <RadioGroup defaultValue="guest" name="plan-orientation" orientation="horizontal">
-              <Radio value="guest">
-                <Radio.Content>
-                  <Radio.Control>
-                    <Radio.Indicator />
-                  </Radio.Control>
-                  Guest
-                </Radio.Content>
-              </Radio>
-              <Radio value="user">
-                <Radio.Content>
-                  <Radio.Control>
-                    <Radio.Indicator />
-                  </Radio.Control>
-                  User
-                </Radio.Content>
-              </Radio>
-            </RadioGroup>
+          <div className="flex flex-col gap-2">
+            <Label className="text-sm font-medium text-zinc-300">User plan</Label>
+            <div className="grid grid-cols-2 gap-1 p-1 bg-zinc-900/90 border border-zinc-800 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setRole("guest")}
+                className={`py-2 text-sm font-semibold rounded-lg transition-all ${role === "guest"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-950/40"
+                    : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+              >
+                Guest
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("user")}
+                className={`py-2 text-sm font-semibold rounded-lg transition-all ${role === "user"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-950/40"
+                    : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+              >
+                User
+              </button>
+            </div>
           </div>
 
           {/* Dynamic Status Badges */}
@@ -212,6 +195,12 @@ export default function SignupPage() {
           </div>
 
         </form>
+        <p className="text-center mt-4">or</p>
+
+        <Button onClick={handleGoogleSignIn} className="w-full text-white hover:bg-accent" variant="outline"  >
+          <FcGoogle />
+          Sign in with Google
+        </Button>
       </Card>
     </div>
   );
