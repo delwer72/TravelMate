@@ -25,33 +25,30 @@ export default function Navbar() {
     await signOut();
   };
 
-  const navLinks = [
-    {
-      label: "Home",
-      href: "/home",
-    },
-    {
-      label: "About Us",
-      href: "/about",
-    },
-    {
-      label: "Packages",
-      href: "/Packages",
-    },
-  ];
-
   const dashboardLinks: Record<UserRole, string> = {
     guest: "/dashboard/guest",
     user: "/dashboard/user",
     admin: "/dashboard/admin",
   };
 
-  if (user?.email) {
-    navLinks.push({
+  const navLinks = [
+    {
+      label: "Home",
+      href: "/",
+    },
+    {
+      label: "Packages",
+      href: "/packages",
+    },
+    {
+      label: "About Us",
+      href: "/about",
+    },
+    {
       label: "Dashboard",
-      href: dashboardLinks[user.role ?? "guest"],
-    });
-  }
+      href: user?.email ? dashboardLinks[user.role ?? "user"] : "/dashboard/user",
+    },
+  ];
 
   return (
     <nav className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
