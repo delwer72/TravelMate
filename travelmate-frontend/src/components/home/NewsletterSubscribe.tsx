@@ -1,120 +1,115 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Send } from 'lucide-react';
+import { Mail, Send, CheckCircle2, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function NewsletterSubscribe() {
   const [email, setEmail] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle newsletter subscription logic here
-    console.log('Subscribed:', email);
-    setEmail('');
+    if (!email) return;
+    setIsSubscribed(true);
+    setTimeout(() => {
+      setEmail('');
+      setIsSubscribed(false);
+    }, 4000);
   };
 
   return (
-    <section className="bg-slate-950 py-24 px-4 sm:px-6 lg:px-8 text-slate-100 overflow-hidden">
+    <section className="bg-slate-50/50 dark:bg-slate-950/80 py-24 px-4 sm:px-6 lg:px-8 text-slate-900 dark:text-white overflow-hidden relative">
       <div className="max-w-5xl mx-auto relative">
-        {/* Decorative Plus-Grid (Bottom Right) */}
-        <div className="absolute -bottom-10 -right-6 z-0 grid grid-cols-5 gap-3 text-xs font-bold select-none opacity-80 pointer-events-none">
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-orange-500/80">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-          
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-
-          <span className="text-slate-700">+</span>
-          <span className="text-indigo-400">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-          <span className="text-slate-700">+</span>
-        </div>
+        
+        {/* Background Ambient Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-72 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Main Subscribe Card Container */}
-        <div className="relative z-10 bg-slate-900/90 border border-slate-800/80 rounded-3xl sm:rounded-[40px] rounded-tl-[80px] sm:rounded-tl-[120px] p-8 sm:p-14 lg:p-16 shadow-2xl shadow-black/60 backdrop-blur-sm overflow-hidden">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7 }}
+          className="relative z-10 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl sm:rounded-[40px] p-8 sm:p-14 lg:p-16 shadow-2xl shadow-slate-300/40 dark:shadow-black/50 overflow-hidden"
+        >
           
           {/* Top-Right Floating Send Badge */}
-          <div className="absolute -top-3 -right-3 sm:top-2 sm:right-2 z-20">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 -rotate-12 hover:rotate-0 hover:scale-105 transition-all duration-300">
-              <Send className="w-5 h-5 sm:w-6 sm:h-6 fill-white stroke-emerald-500 ml-0.5" />
+          <motion.div 
+            animate={{ rotate: [6, -6, 6] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20"
+          >
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 hover:scale-105 transition-all duration-300">
+              <Send className="w-5 h-5 sm:w-6 sm:h-6 fill-white stroke-emerald-600 ml-0.5" />
             </div>
-          </div>
-
-          {/* Background Concentric Circles (Bottom Left) */}
-          <svg
-            className="absolute -bottom-20 -left-20 w-80 h-80 opacity-15 pointer-events-none stroke-emerald-400"
-            viewBox="0 0 200 200"
-            fill="none"
-          >
-            <circle cx="100" cy="100" r="40" strokeWidth="1" />
-            <circle cx="100" cy="100" r="60" strokeWidth="1" />
-            <circle cx="100" cy="100" r="80" strokeWidth="1" />
-            <circle cx="100" cy="100" r="100" strokeWidth="1" />
-          </svg>
-
-          {/* Background Concentric Circles (Top Right) */}
-          <svg
-            className="absolute -top-20 -right-20 w-80 h-80 opacity-15 pointer-events-none stroke-emerald-400"
-            viewBox="0 0 200 200"
-            fill="none"
-          >
-            <circle cx="100" cy="100" r="40" strokeWidth="1" />
-            <circle cx="100" cy="100" r="60" strokeWidth="1" />
-            <circle cx="100" cy="100" r="80" strokeWidth="1" />
-            <circle cx="100" cy="100" r="100" strokeWidth="1" />
-          </svg>
+          </motion.div>
 
           {/* Card Body Content */}
-          <div className="relative z-10 max-w-2xl mx-auto text-center">
+          <div className="relative z-10 max-w-2xl mx-auto text-center space-y-6">
+            
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5" /> Stay in the Loop
+            </span>
+
             {/* Header Text */}
-            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-200 leading-snug sm:leading-normal mb-8 sm:mb-10">
-              Subscribe to get information, latest news and other interesting offers about Cobham
+            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+              Subscribe to Receive Secret Deals & Exclusive Itineraries
             </h3>
 
-            {/* Input & Button Form */}
-            <form
-              onSubmit={handleSubmit}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto"
-            >
-              {/* Email Input Field */}
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Your email"
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-800/90 border border-slate-700/80 text-slate-100 placeholder-slate-500 text-sm sm:text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
-                />
-              </div>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+              Join 50,000+ avid travelers getting weekly travel discounts, destination guides, and early access to group tours.
+            </p>
 
-              {/* Subscribe Button */}
-              <button
-                type="submit"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm sm:text-base shadow-lg shadow-emerald-600/25 shrink-0 transition-all duration-200 active:scale-95"
+            {isSubscribed ? (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-2 text-sm font-semibold max-w-md mx-auto"
               >
-                Subscribe
-              </button>
-            </form>
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                <span>Thank you for subscribing! Check your inbox soon.</span>
+              </motion.div>
+            ) : (
+              /* Input & Button Form */
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto pt-2"
+              >
+                {/* Email Input Field */}
+                <div className="relative w-full">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email address"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:border-emerald-500 shadow-sm transition-all"
+                  />
+                </div>
+
+                {/* Subscribe Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="submit"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 shrink-0 transition-all duration-200 cursor-pointer"
+                >
+                  Subscribe
+                </motion.button>
+              </form>
+            )}
+
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+              🔒 We respect your privacy. Unsubscribe at any time with 1-click.
+            </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
 }
+

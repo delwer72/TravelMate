@@ -6,15 +6,18 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import PackageModal from '@/components/dashboard/PackageModal';
+import { useAuth } from '@/lib/auth-context';
 import {
   getAdminStats,
   getAdminBookings,
   getPackages,
+  getAdminUsers,
   updateBookingStatus,
   deletePackage,
   AdminStats,
   Booking,
   TourPackage,
+  RegisteredUser,
 } from '@/lib/api';
 import {
   AreaChart,
@@ -50,6 +53,7 @@ import {
 } from 'lucide-react';
 
 function AdminDashboardContent() {
+  const { user, isLoading: authLoading, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get('tab') || 'analytics';
@@ -60,6 +64,7 @@ function AdminDashboardContent() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [packages, setPackages] = useState<TourPackage[]>([]);
+  const [usersList, setUsersList] = useState<RegisteredUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
   const [packageSearch, setPackageSearch] = useState('');
@@ -68,20 +73,23 @@ function AdminDashboardContent() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [statsRes, bookingsRes, packagesRes] = await Promise.all([
+      const [statsRes, bookingsRes, packagesRes, usersRes] = await Promise.all([
         getAdminStats(),
         getAdminBookings(),
         getPackages(),
+        getAdminUsers(),
       ]);
       setStats(statsRes);
       setBookings(bookingsRes);
       setPackages(packagesRes);
+      setUsersList(usersRes);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     if (tabQuery && ['analytics', 'packages', 'bookings', 'users'].includes(tabQuery)) {
@@ -90,14 +98,20 @@ function AdminDashboardContent() {
   }, [tabQuery]);
 
   useEffect(() => {
+    // Wait until auth state resolves
+    if (authLoading) return;
+    // Not logged in → sign-in
+    if (!user) {
+      router.push('/auth/signin?redirect=/dashboard/admin');
+      return;
+    }
+    // Wrong role → access denied
+    if (user.role !== 'admin') {
+      router.push('/dashboard/access-denied');
+      return;
+    }
     loadData();
-  }, []);
-
-  const handleRoleChange = (newRole: 'user' | 'admin' | 'guest') => {
-    if (newRole === 'user') router.push('/dashboard/user');
-    else if (newRole === 'guest') router.push('/dashboard/guest');
-    else router.push('/dashboard/admin');
-  };
+  }, [user, authLoading]);
 
   const handleStatusChange = async (
     id: string,
@@ -132,9 +146,22 @@ function AdminDashboardContent() {
     { id: 'usr-5', name: 'Olivia Martinez', email: 'olivia.m@icloud.com', role: 'guest', tripsCount: 0, joined: '2026-08-14' },
   ];
 
+  // Show a spinner while auth resolves
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-slate-400 text-sm">
+        <svg className="animate-spin w-5 h-5 mr-2 text-emerald-400" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+        </svg>
+        Verifying access...
+      </div>
+    );
+  }
+
   return (
-    <div className="flex gap-6 min-h-[calc(100vh-8rem)]">
-      <DashboardSidebar currentRole="admin" onRoleChange={handleRoleChange} />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex gap-6 min-h-[calc(100vh-8rem)]">
+      <DashboardSidebar />
 
       <main className="flex-1 min-w-0">
         <DashboardHeader
@@ -146,25 +173,25 @@ function AdminDashboardContent() {
         />
 
         {/* Tab Selection */}
-        <div className="flex border-b border-zinc-800 mb-6 gap-2 sm:gap-6 overflow-x-auto">
+        <div className="flex border-b border-slate-800 mb-6 gap-2 sm:gap-6 overflow-x-auto">
           {[
             { id: 'analytics', label: 'Analytics & Revenue' },
             { id: 'packages', label: 'Tour Packages', count: packages.length },
             { id: 'bookings', label: 'Bookings Management', count: bookings.length },
-            { id: 'users', label: 'Registered Users', count: dummyUsers.length },
+            { id: 'users', label: 'Registered Users', count: usersList.length },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`pb-3 text-sm font-semibold transition border-b-2 flex items-center gap-2 whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'border-indigo-500 text-indigo-400'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-200'
+                  ? 'border-emerald-500 text-emerald-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
               {tab.label}
               {tab.count !== undefined && (
-                <span className="px-2 py-0.5 rounded-full text-xs bg-zinc-800 text-zinc-300">
+                <span className="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300">
                   {tab.count}
                 </span>
               )}
@@ -172,16 +199,17 @@ function AdminDashboardContent() {
           ))}
         </div>
 
+
         {/* TAB 1: ANALYTICS */}
         {activeTab === 'analytics' && (
           <div className="space-y-8">
             {/* KPI Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800 shadow-sm relative overflow-hidden group">
+              <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-emerald-400">
                   <DollarSign className="w-16 h-16" />
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Total Gross Revenue</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Gross Revenue</p>
                 <h3 className="text-3xl font-extrabold text-white mt-1">
                   ${(stats?.totalRevenue || 54600).toLocaleString()}
                 </h3>
@@ -190,29 +218,29 @@ function AdminDashboardContent() {
                 </p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-indigo-400">
+              <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-emerald-400">
                   <CalendarCheck className="w-16 h-16" />
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Total Reservations</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Reservations</p>
                 <h3 className="text-3xl font-extrabold text-white mt-1">{stats?.totalBookings ?? 37}</h3>
-                <p className="text-xs text-indigo-400 mt-2 font-medium">94% Fulfillment rate</p>
+                <p className="text-xs text-emerald-400 mt-2 font-medium">94% Fulfillment rate</p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-orange-400">
+              <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-emerald-400">
                   <Package className="w-16 h-16" />
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Active Packages</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Packages</p>
                 <h3 className="text-3xl font-extrabold text-white mt-1">{packages.length}</h3>
-                <p className="text-xs text-zinc-400 mt-2">7 global regions</p>
+                <p className="text-xs text-slate-400 mt-2">7 global regions</p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-violet-400">
+              <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-teal-400">
                   <Users className="w-16 h-16" />
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Registered Travelers</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Registered Travelers</p>
                 <h3 className="text-3xl font-extrabold text-white mt-1">{stats?.totalUsers ?? 184}</h3>
                 <p className="text-xs text-emerald-400 mt-2 font-medium">+18 new this week</p>
               </div>
@@ -221,11 +249,11 @@ function AdminDashboardContent() {
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Monthly Revenue Trend Area Chart */}
-              <div className="lg:col-span-2 p-6 rounded-3xl bg-zinc-900 border border-zinc-800">
+              <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900 border border-slate-800">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-bold text-white">Monthly Revenue Trends</h3>
-                    <p className="text-xs text-zinc-400">Gross earnings (USD) across 2026</p>
+                    <p className="text-xs text-slate-400">Gross earnings (USD) across 2026</p>
                   </div>
                   <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                     Live Data
@@ -254,10 +282,10 @@ function AdminDashboardContent() {
               </div>
 
               {/* Status Breakdown Donut Chart */}
-              <div className="p-6 rounded-3xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between">
+              <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-white">Booking Status</h3>
-                  <p className="text-xs text-zinc-400 mb-2">Reservation distribution</p>
+                  <p className="text-xs text-slate-400 mb-2">Reservation distribution</p>
                 </div>
                 <div className="h-52 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -279,11 +307,11 @@ function AdminDashboardContent() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-800 text-xs">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800 text-xs">
                   {(stats?.statusBreakdown || []).map((item) => (
                     <div key={item.name} className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="text-zinc-400">{item.name}:</span>
+                      <span className="text-slate-400">{item.name}:</span>
                       <span className="font-bold text-white">{item.value}</span>
                     </div>
                   ))}
@@ -292,17 +320,17 @@ function AdminDashboardContent() {
             </div>
 
             {/* Quick Recent Bookings preview */}
-            <div className="p-6 rounded-3xl bg-zinc-900 border border-zinc-800">
+            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-white">Recent Traveler Reservations</h3>
-                <button onClick={() => setActiveTab('bookings')} className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
+                <button onClick={() => setActiveTab('bookings')} className="text-xs font-semibold text-emerald-400 hover:text-emerald-300">
                   View All ({bookings.length}) →
                 </button>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="text-xs uppercase text-zinc-400 border-b border-zinc-800 pb-2">
+                  <thead className="text-xs uppercase text-slate-400 border-b border-slate-800 pb-2">
                     <tr>
                       <th className="pb-3 font-semibold">Traveler</th>
                       <th className="pb-3 font-semibold">Tour Package</th>
@@ -311,23 +339,23 @@ function AdminDashboardContent() {
                       <th className="pb-3 font-semibold">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/60">
+                  <tbody className="divide-y divide-slate-800/60">
                     {bookings.slice(0, 4).map((b) => (
-                      <tr key={b._id} className="hover:bg-zinc-850/40">
+                      <tr key={b._id} className="hover:bg-slate-850/40">
                         <td className="py-3.5">
                           <p className="font-semibold text-white">{b.travelerName}</p>
-                          <p className="text-xs text-zinc-400">{b.travelerEmail}</p>
+                          <p className="text-xs text-slate-400">{b.travelerEmail}</p>
                         </td>
-                        <td className="py-3.5 text-zinc-300 font-medium">{b.packageTitle}</td>
-                        <td className="py-3.5 text-zinc-400 text-xs">
+                        <td className="py-3.5 text-slate-300 font-medium">{b.packageTitle}</td>
+                        <td className="py-3.5 text-slate-400 text-xs">
                           {new Date(b.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </td>
                         <td className="py-3.5 font-bold text-emerald-400">${b.totalPrice}</td>
                         <td className="py-3.5">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
                             b.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                            b.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                            'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                            b.status === 'pending' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                            'bg-teal-500/10 text-teal-400 border border-teal-500/20'
                           }`}>
                             {b.status}
                           </span>
@@ -346,19 +374,19 @@ function AdminDashboardContent() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search package title, destination..."
                   value={packageSearch}
                   onChange={(e) => setPackageSearch(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <button
                 onClick={() => setIsPackageModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-500/20 transition flex items-center gap-2"
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-500/20 transition flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" /> Add New Tour Package
               </button>
@@ -366,7 +394,7 @@ function AdminDashboardContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredPackages.map((pkg) => (
-                <div key={pkg._id} className="rounded-2xl bg-zinc-900 border border-zinc-800 overflow-hidden flex flex-col justify-between group">
+                <div key={pkg._id} className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col justify-between group">
                   <div>
                     <div className="relative h-48 overflow-hidden">
                       <img
@@ -374,7 +402,7 @@ function AdminDashboardContent() {
                         alt={pkg.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                       />
-                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-600 text-white">
+                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white">
                         {pkg.category}
                       </span>
                       <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold bg-black/60 backdrop-blur-md text-white">
@@ -384,16 +412,16 @@ function AdminDashboardContent() {
 
                     <div className="p-5 space-y-2">
                       <h4 className="font-bold text-white text-base line-clamp-1">{pkg.title}</h4>
-                      <p className="text-xs text-zinc-400 flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-orange-400" /> {pkg.destination}
+                      <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-400" /> {pkg.destination}
                       </p>
-                      <p className="text-xs text-zinc-400 line-clamp-2">{pkg.description}</p>
+                      <p className="text-xs text-slate-400 line-clamp-2">{pkg.description}</p>
                     </div>
                   </div>
 
-                  <div className="p-5 pt-0 border-t border-zinc-800/80 mt-3 flex items-center justify-between">
+                  <div className="p-5 pt-0 border-t border-slate-800/80 mt-3 flex items-center justify-between">
                     <div>
-                      <span className="text-xs text-zinc-400 block">Price</span>
+                      <span className="text-xs text-slate-400 block">Price</span>
                       <span className="text-lg font-extrabold text-white">${pkg.discountPrice || pkg.price}</span>
                     </div>
 
@@ -425,8 +453,8 @@ function AdminDashboardContent() {
                     onClick={() => setBookingFilter(f)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
                       bookingFilter === f
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
                     }`}
                   >
                     {f}
@@ -435,9 +463,9 @@ function AdminDashboardContent() {
               </div>
             </div>
 
-            <div className="p-6 rounded-3xl bg-zinc-900 border border-zinc-800 overflow-x-auto">
+            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="text-xs uppercase text-zinc-400 border-b border-zinc-800 pb-2">
+                <thead className="text-xs uppercase text-slate-400 border-b border-slate-800 pb-2">
                   <tr>
                     <th className="pb-3 font-semibold">Ref & Traveler</th>
                     <th className="pb-3 font-semibold">Package & Destination</th>
@@ -447,33 +475,33 @@ function AdminDashboardContent() {
                     <th className="pb-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/60">
+                <tbody className="divide-y divide-slate-800/60">
                   {filteredBookings.map((b) => (
-                    <tr key={b._id} className="hover:bg-zinc-850/40">
+                    <tr key={b._id} className="hover:bg-slate-850/40">
                       <td className="py-4">
-                        <span className="text-[11px] font-mono text-zinc-500 block">#{b._id}</span>
+                        <span className="text-[11px] font-mono text-slate-500 block">#{b._id}</span>
                         <p className="font-semibold text-white">{b.travelerName}</p>
-                        <p className="text-xs text-zinc-400">{b.travelerEmail}</p>
-                        {b.travelerPhone && <p className="text-xs text-zinc-500">{b.travelerPhone}</p>}
+                        <p className="text-xs text-slate-400">{b.travelerEmail}</p>
+                        {b.travelerPhone && <p className="text-xs text-slate-500">{b.travelerPhone}</p>}
                       </td>
                       <td className="py-4">
-                        <p className="font-medium text-zinc-200">{b.packageTitle}</p>
-                        <p className="text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3 text-orange-400" /> {b.destination}
+                        <p className="font-medium text-slate-200">{b.packageTitle}</p>
+                        <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 text-emerald-400" /> {b.destination}
                         </p>
                       </td>
-                      <td className="py-4 text-xs text-zinc-300">
+                      <td className="py-4 text-xs text-slate-300">
                         <p className="font-semibold text-white">
                           {new Date(b.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
-                        <p className="text-zinc-400">{b.guestsCount} Guests</p>
+                        <p className="text-slate-400">{b.guestsCount} Guests</p>
                       </td>
                       <td className="py-4 font-bold text-emerald-400">${b.totalPrice}</td>
                       <td className="py-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
                           b.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                          b.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                          b.status === 'completed' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
+                          b.status === 'pending' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                          b.status === 'completed' ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' :
                           'bg-red-500/10 text-red-400 border border-red-500/20'
                         }`}>
                           {b.status}
@@ -492,7 +520,7 @@ function AdminDashboardContent() {
                           {b.status !== 'completed' && (
                             <button
                               onClick={() => handleStatusChange(b._id, 'completed')}
-                              className="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 text-xs font-semibold transition"
+                              className="px-2.5 py-1 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 text-xs font-semibold transition"
                             >
                               Complete
                             </button>
@@ -518,37 +546,64 @@ function AdminDashboardContent() {
         {/* TAB 4: USERS */}
         {activeTab === 'users' && (
           <div className="space-y-6">
-            <h3 className="text-xl font-bold text-white">Registered Travelers & Accounts</h3>
-            <div className="p-6 rounded-3xl bg-zinc-900 border border-zinc-800 overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="text-xs uppercase text-zinc-400 border-b border-zinc-800 pb-2">
-                  <tr>
-                    <th className="pb-3 font-semibold">User</th>
-                    <th className="pb-3 font-semibold">Email</th>
-                    <th className="pb-3 font-semibold">Role</th>
-                    <th className="pb-3 font-semibold">Trips Booked</th>
-                    <th className="pb-3 font-semibold">Member Since</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/60">
-                  {dummyUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-zinc-850/40">
-                      <td className="py-3.5 font-semibold text-white">{u.name}</td>
-                      <td className="py-3.5 text-zinc-400">{u.email}</td>
-                      <td className="py-3.5">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${
-                          u.role === 'admin' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
-                          'bg-zinc-800 text-zinc-300'
-                        }`}>
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="py-3.5 font-bold text-orange-400">{u.tripsCount}</td>
-                      <td className="py-3.5 text-xs text-zinc-400">{u.joined}</td>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-white">Registered Travelers & Accounts</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Real-time accounts retrieved directly from MongoDB</p>
+              </div>
+              <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-full">
+                {usersList.length} Accounts
+              </span>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 overflow-x-auto">
+              {usersList.length === 0 ? (
+                <div className="py-12 text-center text-slate-500 text-sm">
+                  No registered users found in the database.
+                </div>
+              ) : (
+                <table className="w-full text-left text-sm">
+                  <thead className="text-xs uppercase text-slate-400 border-b border-slate-800 pb-2">
+                    <tr>
+                      <th className="pb-3 font-semibold">User</th>
+                      <th className="pb-3 font-semibold">Email</th>
+                      <th className="pb-3 font-semibold">Role</th>
+                      <th className="pb-3 font-semibold">Saved Items</th>
+                      <th className="pb-3 font-semibold">Member Since</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {usersList.map((u) => (
+                      <tr key={u._id} className="hover:bg-slate-850/40">
+                        <td className="py-3.5 font-semibold text-white">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-bold text-xs text-white uppercase shadow-sm">
+                              {u.name ? u.name.charAt(0) : 'U'}
+                            </div>
+                            <span>{u.name || 'Unnamed User'}</span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 text-slate-400">{u.email}</td>
+                        <td className="py-3.5">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${
+                            u.role === 'admin' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                            u.role === 'user' ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' :
+                            'bg-slate-800 text-slate-300'
+                          }`}>
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="py-3.5 font-bold text-emerald-400">
+                          {u.savedPackages?.length || 0} saved
+                        </td>
+                        <td className="py-3.5 text-xs text-slate-400">
+                          {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}
@@ -556,6 +611,7 @@ function AdminDashboardContent() {
 
       {/* Package Creation Modal */}
       <PackageModal
+
         isOpen={isPackageModalOpen}
         onClose={() => setIsPackageModalOpen(false)}
         onSuccess={() => loadData()}
@@ -566,7 +622,7 @@ function AdminDashboardContent() {
 
 export default function AdminDashboardPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-zinc-400">Loading admin dashboard...</div>}>
+    <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-slate-400">Loading admin dashboard...</div>}>
       <AdminDashboardContent />
     </Suspense>
   );

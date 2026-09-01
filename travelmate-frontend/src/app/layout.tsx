@@ -1,11 +1,28 @@
 import type { Metadata } from "next";
+import { Poppins, Volkhov } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { AuthProvider } from "@/lib/auth-context";
+import { ThemeProvider } from "@/components/theme-provider";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-poppins",
+  display: "swap",
+});
+
+const volkhov = Volkhov({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-volkhov",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "TravelMate – Travel Planning & Review Platform",
-  description: "Plan Better. Travel Smarter. Share Experiences.",
+  title: "Travel-goo – Travel Planning & Review Platform",
+  description: "Book your trip in minutes, get full control for much longer.",
 };
 
 export default function RootLayout({
@@ -14,16 +31,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="flex flex-col min-h-screen">
-        {/* Navbar component added here */}
-        <Navbar />
-        
-        {/* Main content */}
-        <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {children}
-        </main>
-        <Footer/>
+    <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${volkhov.variable}`}>
+      <body className="flex flex-col min-h-screen font-sans antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {/* AuthProvider makes useAuth() available throughout the entire app */}
+          <AuthProvider>
+            {/* Navbar component */}
+            <Navbar />
+
+            {/* Main content */}
+            <main className="flex-grow w-full">
+              {children}
+            </main>
+            <Footer />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
