@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, Quote, Sparkles, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Quote, Sparkles, Star, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Testimonial {
   id: number;
   name: string;
   role: string;
+  location: string;
   avatar: string;
   bgImage: string;
   quote: string;
@@ -20,6 +21,7 @@ const testimonials: Testimonial[] = [
     id: 1,
     name: 'Leo Stanlee',
     role: 'Adventure Photographer',
+    location: 'Swiss Alpine Expedition',
     avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=300&auto=format&fit=crop',
     bgImage: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200&auto=format&fit=crop',
     quote: 'Booking the Swiss Alpine trek through TravelMate was effortlessly smooth. Every mountain hut reservation, train ticket, and local guide was top notch!',
@@ -29,6 +31,7 @@ const testimonials: Testimonial[] = [
     id: 2,
     name: 'Sarah Jenkins',
     role: 'Solo World Explorer',
+    location: 'Bali Cultural Sanctuary',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop',
     bgImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
     quote: 'The Bali cultural sanctuary tour completely transformed my perspective. Safe, authentic, and the concierge support was available 24/7!',
@@ -38,6 +41,7 @@ const testimonials: Testimonial[] = [
     id: 3,
     name: 'Michael Chen',
     role: 'Family Vacationer',
+    location: 'Serengeti Wildlife Safari',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop',
     bgImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200&auto=format&fit=crop',
     quote: 'Our kids loved the Serengeti safari package. Transparent pricing with zero hidden surcharges. Will definitely book again next summer!',
@@ -59,17 +63,20 @@ export default function TestimonialSection() {
   const current = testimonials[currentIndex];
 
   return (
-    <section className="bg-slate-50/50 dark:bg-slate-950/80 py-20 px-4 sm:px-6 lg:px-8 text-slate-900 dark:text-white overflow-hidden">
-      <div className="max-w-7xl mx-auto space-y-14">
+    <section className="bg-slate-50/50 dark:bg-slate-950/80 py-24 px-4 sm:px-6 lg:px-8 text-slate-900 dark:text-white overflow-hidden relative">
+      {/* Ambient Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto space-y-14 relative z-10">
         {/* Title */}
         <motion.div 
-          className="text-center max-w-2xl mx-auto space-y-3"
+          className="text-center max-w-2xl mx-auto space-y-4"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6 }}
         >
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+          <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" /> Traveler Testimonials
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -103,7 +110,10 @@ export default function TestimonialSection() {
                     sizes="(max-width: 1024px) 100vw, 896px"
                     className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-black/20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/40 to-black/20" />
+                  <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold bg-black/60 backdrop-blur-md text-white border border-white/10">
+                    📍 {current.location}
+                  </span>
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -116,7 +126,7 @@ export default function TestimonialSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
-                className="absolute left-1/2 -bottom-20 sm:-bottom-24 -translate-x-1/2 w-[92%] sm:w-[84%] max-w-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl shadow-slate-300/80 dark:shadow-black/80 border border-slate-200 dark:border-slate-800"
+                className="absolute left-1/2 -bottom-20 sm:-bottom-24 -translate-x-1/2 w-[92%] sm:w-[84%] max-w-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl shadow-slate-300/80 dark:shadow-black/80 border border-slate-200 dark:border-slate-800"
               >
                 {/* Overlapping Avatar */}
                 <div className="absolute -top-10 sm:-top-12 left-1/2 -translate-x-1/2 w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-slate-900 overflow-hidden shadow-xl ring-2 ring-emerald-500/40">
@@ -146,8 +156,9 @@ export default function TestimonialSection() {
                     <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                       {current.name}
                     </h4>
-                    <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                      {current.role} • Verified Traveler
+                    <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1 mt-0.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>{current.role} • Verified Explorer</span>
                     </p>
                   </div>
                 </div>
@@ -161,7 +172,7 @@ export default function TestimonialSection() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handlePrev}
-              className="p-3 rounded-full bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md transition-colors cursor-pointer"
+              className="p-3.5 rounded-full bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md transition-colors cursor-pointer"
               aria-label="Previous Testimonial"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -170,7 +181,7 @@ export default function TestimonialSection() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleNext}
-              className="p-3 rounded-full bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md transition-colors cursor-pointer"
+              className="p-3.5 rounded-full bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md transition-colors cursor-pointer"
               aria-label="Next Testimonial"
             >
               <ChevronRight className="w-5 h-5" />
@@ -196,4 +207,5 @@ export default function TestimonialSection() {
       </div>
     </section>
   );
-}
+}
+

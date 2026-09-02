@@ -70,7 +70,10 @@ export default function DashboardSidebar({ currentRole: _ignored }: DashboardSid
     : role === "admin" ? "AD" : role === "user" ? "TM" : "GU";
 
   return (
-    <aside className="w-64 shrink-0 bg-white dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800/80 p-5 flex flex-col justify-between hidden md:flex min-h-[calc(100vh-5rem)] rounded-2xl shadow-sm">
+    <aside 
+      style={{ position: "sticky", top: "6rem" }}
+      className="w-64 shrink-0 bg-white/95 dark:bg-slate-950/95 border border-slate-200 dark:border-slate-800/80 p-5 flex flex-col justify-between hidden md:flex sticky top-24 self-start h-[calc(100vh-7.5rem)] max-h-[calc(100vh-7.5rem)] overflow-y-auto rounded-3xl shadow-xl z-30 backdrop-blur-2xl transition-all"
+    >
       <div className="space-y-6">
         {/* Branding + Role Badge */}
         <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between">

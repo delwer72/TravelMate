@@ -167,18 +167,21 @@ export default function PopularDestinations() {
   }));
 
   return (
-    <section className="bg-slate-50/70 dark:bg-slate-950/80 py-20 px-4 sm:px-6 lg:px-8 text-slate-900 dark:text-white">
-      <div className="max-w-6xl mx-auto space-y-12">
+    <section className="bg-slate-50/70 dark:bg-slate-950/80 py-24 px-4 sm:px-6 lg:px-8 text-slate-900 dark:text-white relative overflow-hidden">
+      {/* Background Ambient Glow */}
+      <div className="absolute top-1/3 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto space-y-14 relative z-10">
 
         {/* ── Section Heading ── */}
         <motion.div
-          className="text-center space-y-3 max-w-2xl mx-auto"
+          className="text-center space-y-4 max-w-2xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.6 }}
         >
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+          <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
             <Compass className="w-3.5 h-3.5" /> Trending Escapes
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -201,7 +204,7 @@ export default function PopularDestinations() {
             transition={{ duration: 0.7 }}
           >
             {/* Map container */}
-            <div className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-900/20 dark:shadow-black/50" style={{ height: '420px' }}>
+            <div className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-900/20 dark:shadow-black/50" style={{ height: '440px' }}>
               <DestinationsMap
                 destinations={mapDests}
                 activeId={activeId}
@@ -215,38 +218,41 @@ export default function PopularDestinations() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute bottom-3 left-3 right-3 flex items-center gap-3 p-3 rounded-2xl bg-slate-950/80 backdrop-blur-md border border-white/5 shadow-xl"
+                  className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-950/85 backdrop-blur-xl border border-white/10 shadow-2xl"
                 >
-                  <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-white/10">
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-white/15">
                     <Image
                       src={activeDestination.image}
                       alt={activeDestination.title}
                       fill
-                      sizes="56px"
+                      sizes="64px"
                       className="object-cover"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> {activeDestination.country}
+                    <p className="text-[11px] text-emerald-400 font-bold flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" /> {activeDestination.country}
                     </p>
                     <p className="text-white text-sm font-bold truncate">{activeDestination.title}</p>
-                    <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-0.5">
-                      <span className="flex items-center gap-0.5">
-                        <Clock className="w-2.5 h-2.5" /> {activeDestination.duration}
+                    <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-slate-400" /> {activeDestination.duration}
                       </span>
-                      <span className="flex items-center gap-0.5">
-                        <Star className="w-2.5 h-2.5 fill-emerald-400 text-emerald-400" /> {activeDestination.rating}
+                      <span className="flex items-center gap-1 font-semibold text-amber-400">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {activeDestination.rating}
                       </span>
                     </div>
                   </div>
-                  <span className="text-emerald-400 font-black text-base shrink-0">{activeDestination.price}</span>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs text-slate-400 block font-medium">From</span>
+                    <span className="text-emerald-400 font-black text-lg">{activeDestination.price}</span>
+                  </div>
                 </motion.div>
               </AnimatePresence>
             </div>
 
             {/* Dot indicators */}
-            <div className="flex justify-center gap-2">
+            <div className="flex justify-center gap-2 pt-1">
               {destinations.map((d) => (
                 <button
                   key={d.id}
@@ -254,7 +260,7 @@ export default function PopularDestinations() {
                   title={d.country}
                   className={`rounded-full transition-all duration-300 cursor-pointer ${
                     activeId === d.id
-                      ? 'w-6 h-2 bg-emerald-500'
+                      ? 'w-7 h-2 bg-gradient-to-r from-emerald-500 to-teal-400 shadow-sm'
                       : 'w-2 h-2 bg-slate-300 dark:bg-slate-700 hover:bg-emerald-400 dark:hover:bg-emerald-600'
                   }`}
                 />
@@ -283,14 +289,14 @@ export default function PopularDestinations() {
                       className={`group relative flex items-center gap-4 p-4 rounded-3xl cursor-pointer border transition-all duration-300 ${
                         isActive
                           ? 'bg-white dark:bg-slate-900 border-emerald-500/50 shadow-xl shadow-emerald-500/10 dark:shadow-emerald-500/5'
-                          : 'bg-white/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-emerald-400/40 hover:shadow-lg'
+                          : 'bg-white/80 dark:bg-slate-900/70 border-slate-200 dark:border-slate-800 hover:border-emerald-400/40 hover:shadow-lg'
                       }`}
                     >
                       {/* Active bar */}
                       {isActive && (
                         <motion.div
                           layoutId="active-bar"
-                          className="absolute left-0 top-4 bottom-4 w-1 rounded-r-full bg-emerald-500"
+                          className="absolute left-0 top-4 bottom-4 w-1.5 rounded-r-full bg-gradient-to-b from-emerald-500 to-teal-400"
                         />
                       )}
 
@@ -324,24 +330,24 @@ export default function PopularDestinations() {
                         </h3>
 
                         <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          <span>{item.spots}</span>
+                          <span className="font-medium text-slate-700 dark:text-slate-300">{item.spots}</span>
                           <span>•</span>
                           <span>{item.duration}</span>
                           <span>•</span>
-                          <span className="flex items-center gap-0.5">
-                            <Star className="w-3 h-3 fill-emerald-400 text-emerald-400" />
+                          <span className="flex items-center gap-0.5 font-bold text-amber-500 dark:text-amber-400">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                             {item.rating}
                           </span>
                         </div>
                       </div>
 
-                      {/* Arrow */}
+                      {/* Arrow Button */}
                       <Link
                         href={item.href}
                         onClick={(e) => e.stopPropagation()}
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
                           isActive
-                            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                            ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-600/30'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:bg-emerald-600 group-hover:text-white'
                         }`}
                       >
@@ -362,7 +368,7 @@ export default function PopularDestinations() {
                 onClick={() =>
                   setVisibleCount((prev) => (prev >= destinations.length ? 3 : destinations.length))
                 }
-                className="w-full py-3 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:border-emerald-500/60 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer"
+                className="w-full py-3.5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:border-emerald-500/60 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer"
               >
                 {visibleCount >= destinations.length
                   ? '↑ Show fewer destinations'

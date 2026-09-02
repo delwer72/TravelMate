@@ -37,7 +37,7 @@ function GuestDashboardContent() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex gap-6 min-h-[calc(100vh-8rem)]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex items-start gap-6 min-h-[calc(100vh-8rem)]">
       <DashboardSidebar />
 
       <main className="flex-1 min-w-0 space-y-8">

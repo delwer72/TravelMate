@@ -4,8 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { Button } from "@heroui/react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Compass, Sparkles, LogOut, LayoutDashboard, Menu, X, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type UserRole = "guest" | "user" | "admin";
 
@@ -48,183 +49,193 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl transition-colors">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full glass-navbar transition-colors">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 
         {/* LEFT: LOGO */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="flex items-center gap-1.5">
-            <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-black text-base shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-              TM
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="relative flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-emerald-500/25 group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300">
+              <Compass className="w-5 h-5 text-white animate-spin-slow" />
+            </div>
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
             </span>
-            <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Travel<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-400">Mate</span>
+          </div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-1">
+              Travel<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400">Mate</span>
             </h2>
+            <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Bespoke Journeys</p>
           </div>
         </Link>
 
-        {/* MOBILE MENU BUTTONS */}
-        <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle />
-          <button
-            className="p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {isOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
-          </button>
-        </div>
+        {/* CENTER: DESKTOP NAV LINKS */}
+        <nav className="hidden md:flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800/80 backdrop-blur-md">
+          {navLinks.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
+                  isActive
+                    ? "text-emerald-700 dark:text-emerald-300 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50"
+                }`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="navbar-active-pill"
+                    className="absolute inset-0 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm -z-10"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
         {/* RIGHT MENU - DESKTOP */}
-        <div className="ml-auto hidden items-center justify-end gap-6 md:flex">
+        <div className="hidden items-center gap-3.5 md:flex">
+          {/* THEME TOGGLE */}
+          <ThemeToggle />
 
-          {/* NAV LINKS */}
-          <ul className="flex items-center gap-1">
-            {navLinks.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-all ${
-                      isActive 
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
-                        : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* DIVIDER */}
-          <div className="h-5 w-px bg-slate-200 dark:bg-slate-800" />
-
-          {/* AUTH */}
+          {/* AUTH STATUS */}
           {user ? (
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl">
-                Hi, {user.name || user.email}
-              </span>
+            <div className="flex items-center gap-3 pl-2">
+              <Link
+                href={dashboardLinks[(user.role as UserRole) ?? "guest"]}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 transition group"
+              >
+                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white font-bold text-[11px] flex items-center justify-center">
+                  {(user.name || user.email || "U")[0].toUpperCase()}
+                </div>
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 max-w-[120px] truncate">
+                  {user.name || user.email?.split("@")[0]}
+                </span>
+              </Link>
 
-              <Button variant="danger" onClick={handleSignOut} className="rounded-xl text-xs font-semibold">
-                Sign Out
-              </Button>
+              <button
+                onClick={handleSignOut}
+                className="p-2.5 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-transparent hover:border-rose-200 dark:hover:border-rose-900/50 transition cursor-pointer"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 pl-2">
               <Link
                 href="/auth/signin"
-                className="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 px-3 py-2 transition"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition duration-200"
               >
                 Sign In
               </Link>
 
               <Link
                 href="/auth/signup"
-                className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-4.5 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/20 hover:from-emerald-700 hover:to-teal-600 hover:scale-105 active:scale-95 transition-all duration-200"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/25 hover:from-emerald-500 hover:to-teal-400 hover:scale-105 active:scale-95 transition-all duration-200"
               >
-                Get Started
+                <span>Get Started</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           )}
+        </div>
 
-          {/* THEME TOGGLE */}
+        {/* MOBILE ACTIONS */}
+        <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
+          <button
+            className="p-2.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
 
-      {/* MOBILE MENU */}
-      {isOpen && (
-        <div className="border-t border-zinc-200 dark:border-zinc-800 bg-background px-4 py-3 md:hidden">
-          <ul className="flex flex-col gap-3">
+      {/* MOBILE MENU DRAWER */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-t border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl px-6 py-5 md:hidden space-y-4"
+          >
+            <ul className="flex flex-col gap-2">
+              {navLinks.map((item) => {
+                const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
+                        isActive
+                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                          : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      {isActive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
 
-            {navLinks.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className={`block transition ${
-                      isActive 
-                        ? "text-emerald-600 dark:text-emerald-400 font-semibold" 
-                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-
-            <div className="my-2 h-px bg-zinc-200 dark:bg-zinc-800" />
+            <div className="h-px bg-slate-200 dark:bg-slate-800" />
 
             {user ? (
-              <>
-                <li className="text-sm text-zinc-700 dark:text-zinc-300">
-                  Hi, {user.name || user.email}
-                </li>
+              <div className="space-y-3 pt-1">
+                <div className="flex items-center gap-3 px-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white font-bold text-xs flex items-center justify-center">
+                    {(user.name || user.email || "U")[0].toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name || "Traveler"}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                  </div>
+                </div>
 
-                <li>
-                  <Button
-                    variant="danger"
-                    onClick={handleSignOut}
-                    className="w-full"
-                  >
-                    Sign Out
-                  </Button>
-                </li>
-              </>
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setIsOpen(false);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold hover:bg-rose-500/20 transition cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" /> Sign Out
+                </button>
+              </div>
             ) : (
-              <>
-                <li>
-                  <Link
-                    href="/auth/signin"
-                    onClick={() => setIsOpen(false)}
-                    className="block text-emerald-600 dark:text-emerald-400 font-medium"
-                  >
-                    Sign In
-                  </Link>
-                </li>
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <Link
+                  href="/auth/signin"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full py-2.5 rounded-xl text-center text-xs font-bold border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                >
+                  Sign In
+                </Link>
 
-                <li>
-                  <Link
-                    href="/auth/signup"
-                    onClick={() => setIsOpen(false)}
-                    className="mt-2 block rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-2 text-center text-white font-medium shadow-md shadow-emerald-600/20"
-                  >
-                    Get Started
-                  </Link>
-                </li>
-              </>
+                <Link
+                  href="/auth/signup"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full py-2.5 rounded-xl text-center text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-600/20"
+                >
+                  Get Started
+                </Link>
+              </div>
             )}
-          </ul>
-        </div>
-      )}
-    </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
   );
 }
