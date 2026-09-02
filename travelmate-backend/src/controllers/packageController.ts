@@ -1,5 +1,7 @@
 // src/controllers/packageController.ts
-import { Request, Response } from 'express';
+
+import { Request, Response } from "express";
+
 import {
   getAllPackages,
   getPackageById,
@@ -8,8 +10,9 @@ import {
   updatePackage,
   deletePackage,
   packagesCollection,
-} from '../models/Package';
-import { INITIAL_PACKAGES } from '../config/seedData';
+} from "../models/Package.js";
+
+import { INITIAL_PACKAGES } from "../config/seedData.js";
 
 export const getPackages = async (req: Request, res: Response): Promise<void> => {
   try {

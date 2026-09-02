@@ -1,14 +1,16 @@
 // src/models/User.ts
-import { Collection, ObjectId, WithId } from 'mongodb';
-import bcrypt from 'bcryptjs';
-import { getDb } from '../config/db';
+
+import { Collection, ObjectId, WithId } from "mongodb";
+import bcrypt from "bcryptjs";
+
+import { getDb } from "../config/db.js";
 
 export interface IUser {
   _id?: ObjectId;
   name: string;
   email: string;
   password?: string;
-  role?: 'guest' | 'user' | 'admin';
+  role?: "guest" | "user" | "admin";
   profileImage?: string;
   phone?: string;
   savedPackages?: string[];

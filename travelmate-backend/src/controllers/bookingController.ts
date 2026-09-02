@@ -1,14 +1,13 @@
 // src/controllers/bookingController.ts
-import { Request, Response } from 'express';
-import { ObjectId } from 'mongodb';
 import {
   createBooking,
   getBookingsByUser,
   getAllBookings,
   getBookingById,
   updateBookingStatus,
-} from '../models/Booking';
-import { usersCollection } from '../models/User';
+} from "../models/Booking.js";
+
+import { usersCollection } from "../models/User.js";
 
 export const createNewBooking = async (req: Request, res: Response): Promise<void> => {
   try {

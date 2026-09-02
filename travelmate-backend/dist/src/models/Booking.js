@@ -1,25 +1,35 @@
 // src/models/Booking.ts
-import { ObjectId } from 'mongodb';
-import { getDb } from '../config/db';
-export const bookingsCollection = () => getDb().collection('bookings');
+import { ObjectId } from "mongodb";
+import { getDb } from "../config/db.js";
+export const bookingsCollection = () => getDb().collection("bookings");
 export const createBooking = async (data) => {
     const doc = {
         ...data,
-        status: data.status || 'pending',
-        paymentStatus: data.paymentStatus || 'paid',
+        status: data.status || "pending",
+        paymentStatus: data.paymentStatus || "paid",
         createdAt: new Date(),
     };
     const result = await bookingsCollection().insertOne(doc);
-    return { ...doc, _id: result.insertedId };
+    return {
+        ...doc,
+        _id: result.insertedId,
+    };
 };
 export const getBookingsByUser = async (userId, userEmail) => {
     const orConditions = [];
     if (ObjectId.isValid(userId)) {
-        orConditions.push({ userId: new ObjectId(userId) });
+        orConditions.push({
+            userId: new ObjectId(userId),
+        });
     }
     if (userEmail && userEmail.trim()) {
         const cleanEmail = userEmail.trim().toLowerCase();
-        orConditions.push({ travelerEmail: { $regex: `^${cleanEmail}$`, $options: 'i' } });
+        orConditions.push({
+            travelerEmail: {
+                $regex: `^${cleanEmail}$`,
+                $options: "i",
+            },
+        });
     }
     if (orConditions.length === 0)
         return [];
@@ -30,7 +40,7 @@ export const getBookingsByUser = async (userId, userEmail) => {
 };
 export const getAllBookings = async (filters = {}) => {
     const query = {};
-    if (filters.status && filters.status !== 'All') {
+    if (filters.status && filters.status !== "All") {
         query.status = filters.status;
     }
     if (filters.paymentStatus) {
@@ -38,10 +48,30 @@ export const getAllBookings = async (filters = {}) => {
     }
     if (filters.search) {
         query.$or = [
-            { packageTitle: { $regex: filters.search, $options: 'i' } },
-            { travelerName: { $regex: filters.search, $options: 'i' } },
-            { travelerEmail: { $regex: filters.search, $options: 'i' } },
-            { destination: { $regex: filters.search, $options: 'i' } },
+            {
+                packageTitle: {
+                    $regex: filters.search,
+                    $options: "i",
+                },
+            },
+            {
+                travelerName: {
+                    $regex: filters.search,
+                    $options: "i",
+                },
+            },
+            {
+                travelerEmail: {
+                    $regex: filters.search,
+                    $options: "i",
+                },
+            },
+            {
+                destination: {
+                    $regex: filters.search,
+                    $options: "i",
+                },
+            },
         ];
     }
     const page = Math.max(1, filters.page || 1);
@@ -54,19 +84,33 @@ export const getAllBookings = async (filters = {}) => {
         .skip(skip)
         .limit(limit)
         .toArray();
-    return { bookings, total };
+    return {
+        bookings,
+        total,
+    };
 };
 export const getBookingById = (id) => {
-    if (!ObjectId.isValid(id))
+    if (!ObjectId.isValid(id)) {
         return Promise.resolve(null);
-    return bookingsCollection().findOne({ _id: new ObjectId(id) });
+    }
+    return bookingsCollection().findOne({
+        _id: new ObjectId(id),
+    });
 };
 export const updateBookingStatus = async (id, status, paymentStatus) => {
-    if (!ObjectId.isValid(id))
+    if (!ObjectId.isValid(id)) {
         return null;
-    const updateDoc = { status };
-    if (paymentStatus)
+    }
+    const updateDoc = {
+        status,
+    };
+    if (paymentStatus) {
         updateDoc.paymentStatus = paymentStatus;
-    await bookingsCollection().updateOne({ _id: new ObjectId(id) }, { $set: updateDoc });
+    }
+    await bookingsCollection().updateOne({
+        _id: new ObjectId(id),
+    }, {
+        $set: updateDoc,
+    });
     return getBookingById(id);
 };

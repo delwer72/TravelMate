@@ -1,5 +1,6 @@
-import { getAllPackages, getPackageById, getPackageBySlug, createPackage, updatePackage, deletePackage, packagesCollection, } from '../models/Package';
-import { INITIAL_PACKAGES } from '../config/seedData';
+// src/controllers/packageController.ts
+import { getAllPackages, getPackageById, getPackageBySlug, createPackage, updatePackage, deletePackage, packagesCollection, } from "../models/Package.js";
+import { INITIAL_PACKAGES } from "../config/seedData.js";
 export const getPackages = async (req, res) => {
     try {
         const { category, destination, featured, maxPrice, search, sort, page, limit } = req.query;

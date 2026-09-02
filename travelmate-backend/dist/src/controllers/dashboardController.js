@@ -1,7 +1,8 @@
-import { bookingsCollection } from '../models/Booking';
-import { packagesCollection } from '../models/Package';
-import { usersCollection } from '../models/User';
-import { ObjectId } from 'mongodb';
+// src/controllers/dashboardController.ts
+import { ObjectId } from "mongodb";
+import { bookingsCollection } from "../models/Booking.js";
+import { packagesCollection } from "../models/Package.js";
+import { usersCollection } from "../models/User.js";
 export const getAdminDashboardStats = async (req, res) => {
     try {
         const totalUsers = await usersCollection().countDocuments();

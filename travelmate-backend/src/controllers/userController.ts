@@ -1,11 +1,13 @@
 // src/controllers/userController.ts
-import { Request, Response } from 'express';
+
+import { Request, Response } from "express";
+
 import {
   getAllUsers,
   findUserById,
   updateUserById,
   toggleSavedPackage,
-} from '../models/User';
+} from "../models/User.js";
 
 export const listAllUsers = async (req: Request, res: Response): Promise<void> => {
   try {

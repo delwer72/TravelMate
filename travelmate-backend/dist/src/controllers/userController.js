@@ -1,4 +1,5 @@
-import { getAllUsers, updateUserById, toggleSavedPackage, } from '../models/User';
+// src/controllers/userController.ts
+import { getAllUsers, updateUserById, toggleSavedPackage, } from "../models/User.js";
 export const listAllUsers = async (req, res) => {
     try {
         const users = await getAllUsers();

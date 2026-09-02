@@ -1,64 +1,108 @@
 import "dotenv/config";
-import express, { Request, Response, NextFunction } from 'express';
+
+import express, {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
+
 import cors from "cors";
-import { connectDB } from "./src/config/db";
-import authRoutes from "./src/routes/auth";
-import packageRoutes from "./src/routes/packages";
-import bookingRoutes from "./src/routes/bookings";
-import dashboardRoutes from "./src/routes/dashboard";
-import userRoutes from "./src/routes/users";
+
+import { connectDB } from "./src/config/db.js";
+
+import authRoutes from "./src/routes/auth.js";
+import packageRoutes from "./src/routes/packages.js";
+import bookingRoutes from "./src/routes/bookings.js";
+import dashboardRoutes from "./src/routes/dashboard.js";
+import userRoutes from "./src/routes/users.js";
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
-const port = process.env.PORT || 8000;
-
 // Health check
-app.get('/', (req: Request, res: Response) => {
-    res.json({ message: 'TravelMate API Server is Live!', version: '1.0.0' });
+app.get("/", (req: Request, res: Response) => {
+  res.json({
+    message: "TravelMate API Server is Live!",
+    version: "1.0.0",
+  });
 });
 
-app.get('/health', (req: Request, res: Response) => {
-    res.json({ status: 'ok', uptime: process.uptime() });
+app.get("/health", (req: Request, res: Response) => {
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+  });
 });
 
-// Ensure DB connection for every request in serverless/local environments
+// Database connection
 app.use(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        await connectDB();
-        next();
-    } catch (err) {
-        next(err);
-    }
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Database connection error:", error);
+    next(error);
+  }
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/packages', packageRoutes);
-app.use('/api/bookings', bookingRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/users', userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/packages", packageRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/users", userRoutes);
 
-// 404 handler (no path arg — Express 5 / path-to-regexp v8 safe)
+// 404
 app.use((req: Request, res: Response) => {
-    res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({
+    message: "Route not found",
+  });
 });
 
-// Centralized error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({ message: 'Server error' });
-});
+// Error handler
+app.use(
+  (
+    err: Error,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    console.error("Unhandled error:", err);
 
-// Connect to MongoDB & start listening in local/standalone mode
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-    connectDB().then(() => {
-        app.listen(port, () => {
-            console.log(`Server is running at http://localhost:${port}`);
-        });
+    res.status(500).json({
+      message: "Server error",
+      error:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : undefined,
+    });
+  }
+);
+
+// Local development only
+if (!process.env.VERCEL) {
+  const port = process.env.PORT || 8000;
+
+  connectDB()
+    .then(() => {
+      app.listen(port, () => {
+        console.log(
+          `Server is running on http://localhost:${port}`
+        );
+      });
+    })
+    .catch((error) => {
+      console.error("Failed to connect to MongoDB:", error);
+      process.exit(1);
     });
 }
 

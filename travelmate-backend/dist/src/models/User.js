@@ -1,7 +1,7 @@
 // src/models/User.ts
-import { ObjectId } from 'mongodb';
-import bcrypt from 'bcryptjs';
-import { getDb } from '../config/db';
+import { ObjectId } from "mongodb";
+import bcrypt from "bcryptjs";
+import { getDb } from "../config/db.js";
 export const usersCollection = () => getDb().collection('users');
 export const findUserByEmail = async (email) => {
     const cleanEmail = email.trim().toLowerCase();
