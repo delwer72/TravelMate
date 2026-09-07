@@ -3,11 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 const TOKEN_KEY = "tm_auth_token";
 
 // ─── JWT payload decoder (no crypto — just base64) ───────────────────────────
-// We do a lightweight client-side decode here; the backend does the real verify.
 function decodeJwtRole(token: string): string | null {
   try {
     const base64Payload = token.split(".")[1];
-    // Replace URL-safe chars and decode
+    if (!base64Payload) return null;
     const padded = base64Payload.replace(/-/g, "+").replace(/_/g, "/");
     const json = Buffer.from(padded, "base64").toString("utf-8");
     const payload = JSON.parse(json);
@@ -18,14 +17,22 @@ function decodeJwtRole(token: string): string | null {
 }
 
 // ─── Route rules ─────────────────────────────────────────────────────────────
-
-const ADMIN_PATHS  = ["/dashboard/admin"];
-const USER_PATHS   = ["/dashboard/user"];
-const AUTH_PAGES   = ["/auth/signin", "/auth/signup"];
+const ADMIN_PATHS = ["/dashboard/admin"];
+const USER_PATHS = ["/dashboard/user"];
+const AUTH_PAGES = ["/auth/signin", "/auth/signup"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Always allow callback page and api endpoints to pass through
+  if (pathname.startsWith("/auth/callback") || pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
   const token = req.cookies.get(TOKEN_KEY)?.value ?? null;
+  const hasBetterAuthSession =
+    !!req.cookies.get("better-auth.session_token")?.value ||
+    !!req.cookies.get("__Secure-better-auth.session_token")?.value;
 
   const role = token ? decodeJwtRole(token) : null;
   const isLoggedIn = !!role;
@@ -44,6 +51,19 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── If user has Better Auth session but no tm_auth_token on protected route ─
+  // Route through callback to sync JWT without dropping auth
+  const isProtectedRoute =
+    pathname.startsWith("/dashboard") ||
+    ADMIN_PATHS.some((p) => pathname.startsWith(p)) ||
+    USER_PATHS.some((p) => pathname.startsWith(p));
+
+  if (isProtectedRoute && !isLoggedIn && hasBetterAuthSession) {
+    const callbackUrl = new URL("/auth/callback", req.url);
+    callbackUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(callbackUrl);
+  }
+
   // ── Admin-only routes ───────────────────────────────────────────────────────
   if (ADMIN_PATHS.some((p) => pathname.startsWith(p))) {
     if (!isLoggedIn) {
@@ -52,7 +72,6 @@ export function middleware(req: NextRequest) {
       return NextResponse.redirect(signinUrl);
     }
     if (role !== "admin") {
-      // Authenticated but wrong role → show the access-denied page
       return NextResponse.redirect(new URL("/dashboard/access-denied", req.url));
     }
   }
@@ -64,7 +83,6 @@ export function middleware(req: NextRequest) {
       signinUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(signinUrl);
     }
-    // Both 'user' and 'admin' can view user dashboard
     if (role !== "user" && role !== "admin") {
       return NextResponse.redirect(new URL("/dashboard/guest", req.url));
     }
@@ -73,7 +91,8 @@ export function middleware(req: NextRequest) {
   // ── /dashboard root → redirect to role-appropriate dashboard ───────────────
   if (pathname === "/dashboard" || pathname === "/dashboard/") {
     if (!isLoggedIn) {
-      return NextResponse.redirect(new URL("/auth/signin", req.url));
+      const signinUrl = new URL("/auth/signin", req.url);
+      return NextResponse.redirect(signinUrl);
     }
     const dest =
       role === "admin"
@@ -88,8 +107,7 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Run on all pages except Next.js internals & static files
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/).*)",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };

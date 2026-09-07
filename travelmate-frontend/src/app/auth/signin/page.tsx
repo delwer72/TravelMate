@@ -71,14 +71,25 @@ function SigninForm() {
     }
   };
 
+  const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
+
   const handleGoogleSignIn = async () => {
     try {
-      await authClient.signIn.social({
+      setError("");
+      setIsGoogleLoading(true);
+      const targetUrl = redirectTo && redirectTo !== "/" ? redirectTo : "/dashboard/user";
+      const res = await authClient.signIn.social({
         provider: "google",
-        callbackURL: redirectTo && redirectTo !== "/" ? redirectTo : "/dashboard/user",
+        callbackURL: `/auth/callback?redirect=${encodeURIComponent(targetUrl)}`,
       });
-    } catch (err) {
+      if (res?.error) {
+        setError(res.error.message || "Failed to initiate Google sign in.");
+        setIsGoogleLoading(false);
+      }
+    } catch (err: any) {
       console.error("Google sign in error", err);
+      setError(err?.message || "Google sign in failed. Please try again.");
+      setIsGoogleLoading(false);
     }
   };
 
@@ -296,11 +307,25 @@ function SigninForm() {
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
             <Button
               onClick={handleGoogleSignIn}
+              isDisabled={isGoogleLoading || isLoading}
               className="w-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold rounded-xl h-11 gap-2"
               variant="outline"
             >
-              <FcGoogle className="text-xl" />
-              Sign in with Google
+              {isGoogleLoading ? (
+                <span className="flex items-center gap-2">
+                  <motion.span
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+                    className="inline-block w-4 h-4 border-2 border-slate-400 border-t-emerald-600 rounded-full"
+                  />
+                  Connecting to Google...
+                </span>
+              ) : (
+                <>
+                  <FcGoogle className="text-xl" />
+                  Sign in with Google
+                </>
+              )}
             </Button>
           </motion.div>
         </div>

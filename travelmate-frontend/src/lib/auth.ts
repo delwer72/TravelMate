@@ -3,10 +3,12 @@ import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { admin } from "better-auth/plugins";
 
-const client = new MongoClient(process.env.MONGODB_URI!);
-const db = client.db(process.env.DB_NAME);
+const client = new MongoClient(process.env.MONGODB_URI || "mongodb://localhost:27017");
+const db = client.db(process.env.DB_NAME || "travelmate_db");
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET,
   emailAndPassword: {
     enabled: true,
   },
@@ -21,8 +23,8 @@ export const auth = betterAuth({
     additionalFields: {
       plan: {
         type: "string",
-        defaultValue: "guest_free",
-        input: true, // Allows client to send plan
+        defaultValue: "user_free",
+        input: true,
       },
     },
   },
@@ -30,8 +32,12 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
-          // Securely set role on the server based on the selected plan
-          const role = user.plan === "user_free" ? "user" : "guest";
+          // If explicitly set to guest_free plan, assign guest; otherwise default to user
+          const role =
+            user.plan === "guest_free"
+              ? "guest"
+              : (user as any).role || "user";
+
           return {
             data: {
               ...user,
@@ -39,10 +45,32 @@ export const auth = betterAuth({
             },
           };
         },
+        after: async (user) => {
+          // Sync to the 'users' collection used by the Express backend
+          try {
+            const cleanEmail = user.email?.trim().toLowerCase();
+            if (cleanEmail) {
+              await db.collection("users").updateOne(
+                { email: cleanEmail },
+                {
+                  $setOnInsert: {
+                    name: user.name || "Traveler",
+                    email: cleanEmail,
+                    role: (user as any).role || "user",
+                    profileImage: user.image || undefined,
+                    savedPackages: [],
+                    createdAt: new Date(),
+                  },
+                },
+                { upsert: true }
+              );
+            }
+          } catch (syncErr) {
+            console.error("Failed to sync new user to users collection:", syncErr);
+          }
+        },
       },
     },
   },
-  plugins: [
-    admin(),
-  ],
+  plugins: [admin()],
 });

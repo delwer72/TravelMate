@@ -26,4 +26,4 @@ router.put("/:id", protect, authorize("admin"), updateExistingPackage);
 
 router.delete("/:id", protect, authorize("admin"), deleteExistingPackage);
 
-export default router;
+export default router;  

@@ -59,10 +59,10 @@ export default function DashboardSidebar({ currentRole: _ignored }: DashboardSid
 
   const roleBadgeClass =
     role === "admin"
-      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
       : role === "user"
-      ? "bg-emerald-600/10 text-emerald-400 border-emerald-600/20"
-      : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+      ? "bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-500/20"
+      : "bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20";
 
   // First two letters of the user's name for the avatar
   const initials = user?.name

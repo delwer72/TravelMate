@@ -12,15 +12,15 @@ import React from 'react';
 const page = () => {
   return (
     <div>
-      <HeroSection/> 
-      <ServicesSection/>
-      <BestServiceBanner/>
-      <StatsSection/>
-      <PopularDestinations/>
-      <BestPackages/>
-      <BookingSteps/>
-      <TestimonialSection/>
-      <NewsletterSubscribe/>
+      <HeroSection />
+      <ServicesSection />
+      <BestServiceBanner />
+      <StatsSection />
+      <PopularDestinations />
+      <BestPackages />
+      <BookingSteps />
+      <TestimonialSection />
+      <NewsletterSubscribe />
     </div>
   );
 };
