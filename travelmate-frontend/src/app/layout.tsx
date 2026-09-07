@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/components/theme-provider";
+import ReduxProvider from "@/store/ReduxProvider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -33,24 +34,26 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${volkhov.variable}`}>
       <body className="flex flex-col min-h-screen font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {/* AuthProvider makes useAuth() available throughout the entire app */}
-          <AuthProvider>
-            {/* Navbar component */}
-            <Navbar />
+        <ReduxProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {/* AuthProvider makes useAuth() available throughout the entire app */}
+            <AuthProvider>
+              {/* Navbar component */}
+              <Navbar />
 
-            {/* Main content */}
-            <main className="flex-grow w-full">
-              {children}
-            </main>
-            <Footer />
-          </AuthProvider>
-        </ThemeProvider>
+              {/* Main content */}
+              <main className="flex-grow w-full">
+                {children}
+              </main>
+              <Footer />
+            </AuthProvider>
+          </ThemeProvider>
+        </ReduxProvider>
       </body>
     </html>
   );

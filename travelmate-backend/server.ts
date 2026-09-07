@@ -2,12 +2,12 @@ import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 
-import { connectDB } from "./src/config/db";
-import authRoutes from "./src/routes/auth";
-import packageRoutes from "./src/routes/packages";
-import bookingRoutes from "./src/routes/bookings";
-import dashboardRoutes from "./src/routes/dashboard";
-import userRoutes from "./src/routes/users";
+import { connectDB } from "./src/config/db.js";
+import authRoutes from "./src/routes/auth.js";
+import packageRoutes from "./src/routes/packages.js";
+import bookingRoutes from "./src/routes/bookings.js";
+import dashboardRoutes from "./src/routes/dashboard.js";
+import userRoutes from "./src/routes/users.js";
 
 const app = express();
 
@@ -105,3 +105,14 @@ app.use(
 // ===============================
 
 export default app;
+
+// ===============================
+// Local Development Server
+// ===============================
+
+if (process.env.VERCEL !== "1") {
+  const PORT = process.env.PORT || 8000;
+  app.listen(PORT, () => {
+    console.log(`🚀 TravelMate API running on http://localhost:${PORT}`);
+  });
+}

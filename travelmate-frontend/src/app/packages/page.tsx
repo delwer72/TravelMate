@@ -1,9 +1,34 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import BookingModal from '@/components/dashboard/BookingModal';
-import { getPackages, TourPackage } from '@/lib/api';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  fetchPackages,
+  setFilters,
+  resetFilters as resetPackagesFilters,
+  setPage,
+  setPageSize as setReduxPageSize,
+  selectAllPackages,
+  selectPackagesLoading,
+  selectPackagesFilters,
+  selectCurrentPage,
+  selectPageSize,
+  selectPaginatedPackages,
+  selectTotalPages,
+} from '@/store/slices/packagesSlice';
+import {
+  openBookingModal,
+  closeBookingModal,
+  selectBookingModalOpen,
+  selectSelectedPackage,
+} from '@/store/slices/uiSlice';
+import {
+  toggleWishlistThunk,
+  initWishlist,
+  selectWishlistIds,
+} from '@/store/slices/wishlistSlice';
 import {
   Search,
   MapPin,
@@ -62,78 +87,59 @@ const cardVariant: Variants = {
 };
 
 export default function PackagesPage() {
-  const [packages, setPackages] = useState<TourPackage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('All');
-  const [maxPrice, setMaxPrice] = useState(3500);
-  const [sortBy, setSortBy] = useState('popular');
-  const [selectedPkg, setSelectedPkg] = useState<TourPackage | null>(null);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [savedIds, setSavedIds] = useState<string[]>([]);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(9);
+  const dispatch   = useAppDispatch();
   const gridTopRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    fetchFilteredPackages();
-  }, [category, sortBy]);
+  // ── Redux state ──────────────────────────────────────────────────────────
+  const packages         = useAppSelector(selectPaginatedPackages);
+  const allPackages      = useAppSelector(selectAllPackages);
+  const loading          = useAppSelector(selectPackagesLoading);
+  const filters          = useAppSelector(selectPackagesFilters);
+  const currentPage      = useAppSelector(selectCurrentPage);
+  const pageSz           = useAppSelector(selectPageSize);
+  const totalPages       = useAppSelector(selectTotalPages);
+  const bookingModalOpen = useAppSelector(selectBookingModalOpen);
+  const selectedPkg      = useAppSelector(selectSelectedPackage);
+  const savedIds         = useAppSelector(selectWishlistIds);
 
-  const fetchFilteredPackages = async () => {
-    setLoading(true);
-    try {
-      const data = await getPackages({
-        category: category !== 'All' ? category : undefined,
-        search: search.trim() || undefined,
-        maxPrice: maxPrice < 3500 ? maxPrice : undefined,
-        sort: sortBy,
-      });
-      setPackages(data);
-      setCurrentPage(1);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Local UI state (not shared globally)
+  const [search,   setSearch]   = useState(filters.search   || '');
+  const [maxPrice, setMaxPrice] = useState(3500);
+
+  // Sync page size to 9 for this page
+  useEffect(() => {
+    dispatch(setReduxPageSize(9));
+    dispatch(initWishlist());
+  }, [dispatch]);
+
+  // Re-fetch on filter changes
+  useEffect(() => {
+    dispatch(fetchPackages({ ...filters, maxPrice: maxPrice < 3500 ? maxPrice : undefined }));
+  }, [dispatch, filters, maxPrice]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchFilteredPackages();
+    dispatch(setFilters({ search }));
   };
 
-  const resetFilters = () => {
+  const handleResetFilters = () => {
     setSearch('');
-    setCategory('All');
     setMaxPrice(3500);
-    setSortBy('popular');
-    setCurrentPage(1);
-    fetchFilteredPackages();
+    dispatch(resetPackagesFilters());
   };
 
   const toggleWishlist = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSavedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    dispatch(toggleWishlistThunk(id));
   };
 
-  const totalPackages = packages.length;
-  const totalPages = Math.max(1, Math.ceil(totalPackages / pageSize));
+  const totalPackages    = allPackages.length;
   const validCurrentPage = Math.min(currentPage, totalPages);
-
-  const paginatedPackages = useMemo(() => {
-    const startIndex = (validCurrentPage - 1) * pageSize;
-    return packages.slice(startIndex, startIndex + pageSize);
-  }, [packages, validCurrentPage, pageSize]);
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages || page === validCurrentPage) return;
-    setCurrentPage(page);
-    if (gridTopRef.current) {
-      gridTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    dispatch(setPage(page));
+    gridTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const getPageNumbers = () => {
@@ -153,8 +159,8 @@ export default function PackagesPage() {
     return pages;
   };
 
-  const startRecord = (validCurrentPage - 1) * pageSize + 1;
-  const endRecord = Math.min(validCurrentPage * pageSize, totalPackages);
+  const startRecord = (validCurrentPage - 1) * pageSz + 1;
+  const endRecord    = Math.min(validCurrentPage * pageSz, totalPackages);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-10 pb-16">
@@ -243,11 +249,11 @@ export default function PackagesPage() {
             {CATEGORIES.map((cat) => (
               <motion.button
                 key={cat}
-                onClick={() => setCategory(cat)}
+                onClick={() => dispatch(setFilters({ category: cat }))}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                  category === cat
+                  filters.category === cat
                     ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md shadow-emerald-600/20'
                     : 'bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
                 }`}
@@ -263,8 +269,8 @@ export default function PackagesPage() {
               <ArrowUpDown className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
               <span className="text-slate-500 hidden sm:inline">Sort:</span>
               <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                value={filters.sort || 'popular'}
+                onChange={(e) => dispatch(setFilters({ sort: e.target.value }))}
                 className="bg-transparent text-slate-900 dark:text-white font-medium focus:outline-none cursor-pointer"
               >
                 <option value="popular" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Most Popular</option>
@@ -284,10 +290,7 @@ export default function PackagesPage() {
                 max="3500"
                 step="100"
                 value={maxPrice}
-                onChange={(e) => {
-                  setMaxPrice(Number(e.target.value));
-                  fetchFilteredPackages();
-                }}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
                 className="w-20 sm:w-24 accent-emerald-600 cursor-pointer"
               />
             </div>
@@ -296,11 +299,8 @@ export default function PackagesPage() {
             <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300">
               <span className="text-slate-500">Show:</span>
               <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
+                value={pageSz}
+                onChange={(e) => dispatch(setReduxPageSize(Number(e.target.value)))}
                 className="bg-transparent text-emerald-600 dark:text-emerald-400 font-bold focus:outline-none cursor-pointer"
               >
                 <option value={6} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">6</option>
@@ -320,12 +320,12 @@ export default function PackagesPage() {
           </p>
 
           <AnimatePresence>
-            {(category !== 'All' || search || maxPrice < 3500 || sortBy !== 'popular') && (
+            {(filters.category !== 'All' || filters.search || maxPrice < 3500 || filters.sort) && (
               <motion.button
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.85 }}
-                onClick={resetFilters}
+                onClick={handleResetFilters}
                 className="inline-flex items-center gap-1 text-emerald-400 hover:text-orange-300 font-medium transition cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" /> Reset Filters
@@ -360,7 +360,7 @@ export default function PackagesPage() {
             </motion.div>
           ))}
         </motion.div>
-      ) : paginatedPackages.length === 0 ? (
+      ) : packages.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -380,7 +380,7 @@ export default function PackagesPage() {
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
-            onClick={resetFilters}
+            onClick={handleResetFilters}
             className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg transition"
           >
             Clear all filters
@@ -389,14 +389,14 @@ export default function PackagesPage() {
       ) : (
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${category}-${sortBy}-${currentPage}`}
+            key={`${filters.category}-${filters.sort}-${currentPage}`}
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
             exit={{ opacity: 0 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7"
           >
-            {paginatedPackages.map((pkg) => {
+            {packages.map((pkg) => {
               const isSaved = savedIds.includes(pkg._id);
               return (
                 <motion.div
@@ -487,10 +487,7 @@ export default function PackagesPage() {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.94 }}
-                      onClick={() => {
-                        setSelectedPkg(pkg);
-                        setIsBookingModalOpen(true);
-                      }}
+                      onClick={() => dispatch(openBookingModal(pkg))}
                       className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer"
                     >
                       <Calendar className="w-3.5 h-3.5" /> Book Now
@@ -584,8 +581,8 @@ export default function PackagesPage() {
       {/* Booking Modal */}
       <BookingModal
         pkg={selectedPkg}
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
+        isOpen={bookingModalOpen}
+        onClose={() => dispatch(closeBookingModal())}
       />
     </div>
   );

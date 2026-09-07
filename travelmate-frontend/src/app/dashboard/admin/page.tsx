@@ -7,12 +7,24 @@ import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import PackageModal from '@/components/dashboard/PackageModal';
 import { useAuth } from '@/lib/auth-context';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchAdminStats, selectAdminStats, selectDashboardLoading } from '@/store/slices/dashboardSlice';
 import {
-  getAdminStats,
-  getAdminBookings,
-  getPackages,
+  fetchAdminBookings,
+  updateBookingStatusThunk,
+  selectAdminBookings,
+  selectBookingsLoading,
+} from '@/store/slices/bookingsSlice';
+import { fetchPackages, selectAllPackages } from '@/store/slices/packagesSlice';
+import {
+  openPackageModal,
+  closePackageModal,
+  selectPackageModalOpen,
+  setAdminTab,
+  selectAdminActiveTab,
+} from '@/store/slices/uiSlice';
+import {
   getAdminUsers,
-  updateBookingStatus,
   deletePackage,
   AdminStats,
   Booking,
@@ -45,47 +57,40 @@ import {
 
 function AdminDashboardContent() {
   const { user, isLoading: authLoading } = useAuth();
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get('tab') || 'analytics';
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'packages' | 'bookings' | 'users'>(
-    tabQuery as any || 'analytics'
-  );
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [packages, setPackages] = useState<TourPackage[]>([]);
+  const activeTab = useAppSelector(selectAdminActiveTab);
+  const stats = useAppSelector(selectAdminStats);
+  const bookings = useAppSelector(selectAdminBookings);
+  const packages = useAppSelector(selectAllPackages);
+  const isPackageModalOpen = useAppSelector(selectPackageModalOpen);
+  const dashboardLoading = useAppSelector(selectDashboardLoading);
+  const bookingsLoading = useAppSelector(selectBookingsLoading);
+
   const [usersList, setUsersList] = useState<RegisteredUser[]>([]);
-  const [, setLoading] = useState(true);
-  const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
   const [packageSearch, setPackageSearch] = useState('');
   const [bookingFilter, setBookingFilter] = useState('All');
 
   const loadData = async () => {
-    setLoading(true);
+    dispatch(fetchAdminStats());
+    dispatch(fetchAdminBookings());
+    dispatch(fetchPackages({}));
     try {
-      const [statsRes, bookingsRes, packagesRes, usersRes] = await Promise.all([
-        getAdminStats(),
-        getAdminBookings(),
-        getPackages(),
-        getAdminUsers(),
-      ]);
-      setStats(statsRes);
-      setBookings(bookingsRes);
-      setPackages(packagesRes);
+      const usersRes = await getAdminUsers();
       setUsersList(usersRes);
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
     if (tabQuery && ['analytics', 'packages', 'bookings', 'users'].includes(tabQuery)) {
-      setActiveTab(tabQuery as any);
+      dispatch(setAdminTab(tabQuery as any));
     }
-  }, [tabQuery]);
+  }, [tabQuery, dispatch]);
 
   useEffect(() => {
     // Wait until auth state resolves
@@ -107,14 +112,15 @@ function AdminDashboardContent() {
     id: string,
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
   ) => {
-    await updateBookingStatus(id, status);
-    loadData();
+    await dispatch(updateBookingStatusThunk({ id, status }));
+    dispatch(fetchAdminStats());
   };
 
   const handleDeletePackage = async (id: string) => {
     if (confirm('Are you sure you want to delete this travel package?')) {
       await deletePackage(id);
-      loadData();
+      dispatch(fetchPackages({}));
+      dispatch(fetchAdminStats());
     }
   };
 
@@ -150,7 +156,7 @@ function AdminDashboardContent() {
           subtitle="Real-time revenue monitoring, booking operations, inventory control, and traveler management."
           role="admin"
           actionLabel="Add Tour Package"
-          onActionClick={() => setIsPackageModalOpen(true)}
+          onActionClick={() => dispatch(openPackageModal(null))}
         />
 
         {/* Tab Selection */}
@@ -163,7 +169,7 @@ function AdminDashboardContent() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => dispatch(setAdminTab(tab.id as any))}
               className={`pb-3 text-sm font-semibold transition border-b-2 flex items-center gap-2 whitespace-nowrap cursor-pointer ${
                 activeTab === tab.id
                   ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
@@ -316,7 +322,7 @@ function AdminDashboardContent() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Traveler Reservations</h3>
                 <button
-                  onClick={() => setActiveTab('bookings')}
+                  onClick={() => dispatch(setAdminTab('bookings'))}
                   className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 cursor-pointer"
                 >
                   View All ({bookings.length}) →
@@ -381,7 +387,7 @@ function AdminDashboardContent() {
               </div>
 
               <button
-                onClick={() => setIsPackageModalOpen(true)}
+                onClick={() => dispatch(openPackageModal(null))}
                 className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white text-sm font-semibold shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
               >
                 <Plus className="w-4 h-4" /> Add New Tour Package
@@ -608,8 +614,11 @@ function AdminDashboardContent() {
       {/* Package Creation Modal */}
       <PackageModal
         isOpen={isPackageModalOpen}
-        onClose={() => setIsPackageModalOpen(false)}
-        onSuccess={() => loadData()}
+        onClose={() => dispatch(closePackageModal())}
+        onSuccess={() => {
+          dispatch(fetchPackages({}));
+          dispatch(fetchAdminStats());
+        }}
       />
     </div>
   );

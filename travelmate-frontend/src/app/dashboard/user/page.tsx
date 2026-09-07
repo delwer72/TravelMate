@@ -7,11 +7,15 @@ import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import BookingModal from '@/components/dashboard/BookingModal';
 import { useAuth } from '@/lib/auth-context';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchUserBookings, updateBookingStatusThunk, selectUserBookings, selectBookingsLoading } from '@/store/slices/bookingsSlice';
+import { fetchUserStats, selectUserStats } from '@/store/slices/dashboardSlice';
+import { fetchPackages, selectAllPackages } from '@/store/slices/packagesSlice';
 import {
-  getUserBookings,
-  getUserStats,
-  getPackages,
-  updateBookingStatus,
+  openBookingModal, closeBookingModal,
+  selectBookingModalOpen, selectSelectedPackage,
+} from '@/store/slices/uiSlice';
+import {
   toggleWishlist,
   Booking,
   UserStats,
@@ -38,17 +42,24 @@ import {
 
 function UserDashboardContent() {
   const { user, isLoading: authLoading } = useAuth();
-  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const router   = useRouter();
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get('tab') || 'overview';
 
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'wishlist' | 'settings'>(
     tabQuery as any || 'overview'
   );
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [packages, setPackages] = useState<TourPackage[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // ── Redux state ──────────────────────────────────────────────────────────
+  const stats            = useAppSelector(selectUserStats);
+  const bookings         = useAppSelector(selectUserBookings);
+  const packages         = useAppSelector(selectAllPackages);
+  const loading          = useAppSelector(selectBookingsLoading);
+  const bookingModalOpen = useAppSelector(selectBookingModalOpen);
+  const selectedPkg      = useAppSelector(selectSelectedPackage);
+
+  // Profile form state
   const [selectedBookingForModal, setSelectedBookingForModal] = useState<TourPackage | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
@@ -65,22 +76,10 @@ function UserDashboardContent() {
     }
   }, [tabQuery]);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [statsRes, bookingsRes, packagesRes] = await Promise.all([
-        getUserStats(),
-        getUserBookings(),
-        getPackages(),
-      ]);
-      setStats(statsRes);
-      setBookings(bookingsRes);
-      setPackages(packagesRes);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  const loadData = () => {
+    dispatch(fetchUserStats());
+    dispatch(fetchUserBookings());
+    dispatch(fetchPackages());
   };
 
   useEffect(() => {
@@ -97,7 +96,7 @@ function UserDashboardContent() {
     // Sync profile fields when user data loads
     setUserName(user.name || '');
     setUserEmail(user.email || '');
-  }, [user, authLoading]);
+  }, [user, authLoading, dispatch]);
 
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
@@ -105,15 +104,9 @@ function UserDashboardContent() {
     if (!confirm('Are you sure you want to cancel this booking? Refunds may take 3-5 business days.')) return;
     setCancellingId(bookingId);
     try {
-      const ok = await updateBookingStatus(bookingId, 'cancelled');
-      if (ok) {
-        setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, status: 'cancelled' } : b));
-        const statsRes = await getUserStats();
-        setStats(statsRes);
-      } else {
-        alert('Failed to cancel booking');
-      }
-    } catch (err) {
+      await dispatch(updateBookingStatusThunk({ id: bookingId, status: 'cancelled' }));
+      dispatch(fetchUserStats());
+    } catch {
       alert('An error occurred during cancellation.');
     } finally {
       setCancellingId(null);
