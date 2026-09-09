@@ -39,7 +39,7 @@ export const getPackages = async (req: Request, res: Response): Promise<void> =>
       search: search as string,
       sort: sort as string,
       page: page ? Number(page) : 1,
-      limit: limit ? Number(limit) : 100,
+      limit: limit ? Number(limit) : 200,
     });
 
     res.json({

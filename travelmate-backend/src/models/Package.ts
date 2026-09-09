@@ -115,7 +115,7 @@ export const getAllPackages = async (
   }
 
   const page = Math.max(1, filters.page || 1);
-  const limit = Math.min(200, filters.limit || 100);
+  const limit = Math.min(500, filters.limit || 200);
   const skip = (page - 1) * limit;
 
   let sortObj: any = { createdAt: -1 };

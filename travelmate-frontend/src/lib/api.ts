@@ -76,11 +76,12 @@ export interface RegisteredUser {
   createdAt: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+export const REMOTE_API_URL = 'https://travelmate-backend-neon.vercel.app/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 3500,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -179,14 +180,28 @@ export const getPackages = async (params: {
   maxPrice?: number;
   sort?: string;
 } = {}): Promise<TourPackage[]> => {
+  // 1. Try configured API (e.g. localhost:8000/api)
   try {
     const res = await apiClient.get('/packages', { params });
     if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
       return res.data.data;
     }
-  } catch {
-    // Graceful fallback to client dataset if backend server is unreachable
+  } catch (err) {
+    console.warn('[TravelMate] Primary API /packages failed, attempting cloud Vercel backend:', err);
   }
+
+  // 2. Try remote Vercel API directly if primary was localhost or failed
+  if (API_BASE_URL !== REMOTE_API_URL) {
+    try {
+      const res = await axios.get(`${REMOTE_API_URL}/packages`, { params, timeout: 8000 });
+      if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
+        return res.data.data;
+      }
+    } catch (remoteErr) {
+      console.warn('[TravelMate] Cloud Vercel API /packages failed:', remoteErr);
+    }
+  }
+
   return filterFallbackPackages(params);
 };
 
@@ -195,7 +210,14 @@ export const getPackageByIdOrSlug = async (idOrSlug: string): Promise<TourPackag
     const res = await apiClient.get(`/packages/${idOrSlug}`);
     if (res.data?.data) return res.data.data;
   } catch {
-    // Fallback search
+    if (API_BASE_URL !== REMOTE_API_URL) {
+      try {
+        const res = await axios.get(`${REMOTE_API_URL}/packages/${idOrSlug}`, { timeout: 6000 });
+        if (res.data?.data) return res.data.data;
+      } catch {
+        // Fall through
+      }
+    }
   }
   const found = FALLBACK_PACKAGES.find(
     (p) =>
@@ -373,8 +395,23 @@ export const createPackage = async (packageData: Partial<TourPackage>): Promise<
   try {
     const res = await apiClient.post('/packages', packageData);
     if (res.data?.data) return res.data.data;
-  } catch {
-    // Fallback create
+  } catch (err) {
+    console.warn('[TravelMate] Primary createPackage failed, trying remote Vercel backend:', err);
+    if (API_BASE_URL !== REMOTE_API_URL) {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('tm_auth_token') : null;
+        const res = await axios.post(`${REMOTE_API_URL}/packages`, packageData, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          timeout: 10000,
+        });
+        if (res.data?.data) return res.data.data;
+      } catch (remoteErr) {
+        console.error('[TravelMate] Remote Vercel createPackage failed:', remoteErr);
+      }
+    }
   }
   const created: TourPackage = {
     _id: `pkg-${Date.now()}`,
@@ -407,6 +444,18 @@ export const deletePackage = async (id: string): Promise<boolean> => {
     await apiClient.delete(`/packages/${id}`);
     return true;
   } catch {
+    if (API_BASE_URL !== REMOTE_API_URL) {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('tm_auth_token') : null;
+        await axios.delete(`${REMOTE_API_URL}/packages/${id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          timeout: 6000,
+        });
+        return true;
+      } catch {
+        // Continue
+      }
+    }
     return true;
   }
 };

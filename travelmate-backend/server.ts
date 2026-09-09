@@ -8,6 +8,7 @@ import packageRoutes from "./src/routes/packages.js";
 import bookingRoutes from "./src/routes/bookings.js";
 import dashboardRoutes from "./src/routes/dashboard.js";
 import userRoutes from "./src/routes/users.js";
+import uploadRoutes from "./src/routes/upload.js";
 
 const app = express();
 
@@ -17,11 +18,13 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "https://travelmate-client-kappa.vercel.app"
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl) or any localhost/vercel domains
+      if (!origin || origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("vercel.app")) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true
   })
 );
@@ -68,6 +71,7 @@ app.use("/api/packages", packageRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // ===============================
 // 404 Handler

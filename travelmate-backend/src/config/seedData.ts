@@ -14,11 +14,11 @@ export const INITIAL_PACKAGES = [
     ratingsAverage: 4.9,
     ratingsQuantity: 142,
     images: [
-      "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1573790387438-4da905039392?auto=format&fit=crop&w=1200&q=80"
+      "https://i.ibb.co/tPQ3sWtL/bali-tropical-paradise-cover.jpg",
+      "https://i.ibb.co/FbjwJbn9/bali-tropical-paradise-gallery.jpg",
+      "https://i.ibb.co/tTwcx7Nq/bali-tropical-paradise-gallery.jpg"
     ],
-    coverImage: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "https://i.ibb.co/tPQ3sWtL/bali-tropical-paradise-cover.jpg",
     featured: true,
     highlights: ["Nusa Penida Kelingking Beach tour", "Ubud Monkey Forest & Rice Terraces", "Sunset Seafood Dinner at Jimbaran", "Traditional Balinese Massage Session"],
     included: ["4-Star Resort Accommodations", "Daily Buffet Breakfast", "All Airport Transfers", "English-speaking Local Guide", "Speedboat Tickets"],
@@ -49,10 +49,10 @@ export const INITIAL_PACKAGES = [
     ratingsAverage: 4.95,
     ratingsQuantity: 98,
     images: [
-      "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1502784444187-359ac186c5bb?auto=format&fit=crop&w=1200&q=80"
+      "https://i.ibb.co/MxH0TTpc/swiss-alps-adventure-cover.jpg",
+      "https://i.ibb.co/jkkNSNCp/swiss-alps-adventure-gallery-2.jpg"
     ],
-    coverImage: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "https://i.ibb.co/MxH0TTpc/swiss-alps-adventure-cover.jpg",
     featured: true,
     highlights: ["First-class Glacier Express scenic train pass", "Matterhorn Glacier Paradise cable car", "Jungfraujoch – Top of Europe excursion", "Lake Brienz boat cruise"],
     included: ["Swiss Travel Pass 8-Day 1st Class", "Alpine Boutique Hotels", "Daily Gourmet Breakfasts", "Fondue dinner experience"],
@@ -84,10 +84,10 @@ export const INITIAL_PACKAGES = [
     ratingsAverage: 4.88,
     ratingsQuantity: 210,
     images: [
-      "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1200&q=80"
+      "https://i.ibb.co/4wJk0ync/kyoto-tokyo-cultural-discovery.jpg",
+      "https://i.ibb.co/4qH2k2f/kyoto-tokyo-cultural-discovery.jpg"
     ],
-    coverImage: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "https://i.ibb.co/4wJk0ync/kyoto-tokyo-cultural-discovery.jpg",
     featured: true,
     highlights: ["Shinkansen Bullet Train experience", "Fushimi Inari Thousand Torii Shrine walk", "Tokyo Shibuya Crossing & TeamLab Borderless", "Authentic Tea Ceremony with a Geisha apprentice"],
     included: ["JR Rail Pass 7 Days", "4-Star Modern & Ryokan Hotels", "Daily Breakfast & 2 Kaiseki Dinners", "Subway passes and English guide"],
@@ -120,10 +120,10 @@ export const INITIAL_PACKAGES = [
     ratingsAverage: 4.98,
     ratingsQuantity: 76,
     images: [
-      "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1200&q=80"
+      "https://i.ibb.co/FbmKkX3Q/serengeti-masai-mara-safari-co.jpg",
+      "https://i.ibb.co/x9SgRTB/serengeti-masai-mara-safari-ga.jpg"
     ],
-    coverImage: "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "https://i.ibb.co/FbmKkX3Q/serengeti-masai-mara-safari-co.jpg",
     featured: true,
     highlights: ["Big 5 Game Drives in 4x4 Land Cruiser with pop-up roof", "Ngorongoro Crater descent", "Sunset bush dinners under African stars", "Maasai cultural village experience"],
     included: ["Luxury Safari Lodges", "All National Park Entry Fees", "Full Board Meals on Safari", "Expert Safari Tracker & Driver"],
@@ -153,10 +153,10 @@ export const INITIAL_PACKAGES = [
     ratingsAverage: 4.92,
     ratingsQuantity: 165,
     images: [
-      "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=80"
+      "https://i.ibb.co/zVxs43PG/santorini-mykonos-odyssey-cove.jpg",
+      "https://i.ibb.co/bjMrfgHj/santorini-mykonos-odyssey-gall.jpg"
     ],
-    coverImage: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "https://i.ibb.co/zVxs43PG/santorini-mykonos-odyssey-cove.jpg",
     featured: false,
     highlights: ["Semi-private sunset catamaran cruise with BBQ & wine", "Oia cliffside photo walking tour", "Mykonos Little Venice & Windmills sunset cocktail", "Akrotiri prehistoric ruins guided visit"],
     included: ["Caldera view 4-star boutique hotels", "High-speed ferry between Santorini & Mykonos", "Daily Greek breakfast buffet", "Private port and airport transfers"],
@@ -187,10 +187,10 @@ export const INITIAL_PACKAGES = [
     ratingsAverage: 4.96,
     ratingsQuantity: 180,
     images: [
-      "https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1589802829985-817e51171b92?auto=format&fit=crop&w=1200&q=80"
+      "https://i.ibb.co/1Gwk9w46/inca-trail-machu-picchu-cover.jpg",
+      "https://i.ibb.co/5xf4rNxL/inca-trail-machu-picchu-galler.jpg"
     ],
-    coverImage: "https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=1200&q=80",
+    coverImage: "https://i.ibb.co/1Gwk9w46/inca-trail-machu-picchu-cover.jpg",
     featured: false,
     highlights: ["Sunrise entry to Machu Picchu Citadel", "Scenic Vistadome panoramic train ride", "Sacred Valley artisan markets in Pisac", "Guided Cusco colonial & Incan architecture tour"],
     included: ["Official Inca Trail & Machu Picchu permits", "Certified Quechua English-speaking guide", "Hotels & luxury camp equipment", "All meals during trek"],

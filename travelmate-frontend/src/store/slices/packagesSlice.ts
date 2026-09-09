@@ -119,7 +119,9 @@ export const selectPageSize        = (state: RootState) => state.packages.pageSi
 
 export const selectPaginatedPackages = (state: RootState) => {
   const { items, currentPage, pageSize } = state.packages;
-  const start = (currentPage - 1) * pageSize;
+  const totalPages = Math.max(1, Math.ceil(items.length / (pageSize || 1)));
+  const validPage  = Math.min(Math.max(1, currentPage), totalPages);
+  const start      = (validPage - 1) * pageSize;
   return items.slice(start, start + pageSize);
 };
 

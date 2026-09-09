@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { TourPackage, createPackage } from '@/lib/api';
 import { X, Plus, PackagePlus } from 'lucide-react';
+import ImageUpload from '@/components/common/ImageUpload';
 
 interface PackageModalProps {
   isOpen: boolean;
@@ -176,16 +177,13 @@ export default function PackageModal({ isOpen, onClose, onSuccess }: PackageModa
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cover Image URL</label>
-            <input
-              type="url"
-              required
-              value={coverImage}
-              onChange={(e) => setCoverImage(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-            />
-          </div>
+          <ImageUpload
+            label="Package Cover Image"
+            required
+            value={coverImage}
+            onChange={(url) => setCoverImage(url)}
+            placeholder="Click or drag & drop image to upload to ImgBB"
+          />
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Highlights (comma-separated)</label>

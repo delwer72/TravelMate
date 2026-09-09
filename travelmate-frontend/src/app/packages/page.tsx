@@ -106,8 +106,9 @@ export default function PackagesPage() {
   const [search,   setSearch]   = useState(filters.search   || '');
   const [maxPrice, setMaxPrice] = useState(3500);
 
-  // Sync page size to 9 for this page
+  // Sync page size to 9 and reset to page 1 for this page
   useEffect(() => {
+    dispatch(setPage(1));
     dispatch(setReduxPageSize(9));
     dispatch(initWishlist());
   }, [dispatch]);
